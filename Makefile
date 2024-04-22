@@ -6,15 +6,15 @@ OPTI = -Ofast -march=native -ffast-math
 
 #DEBUG = -fsanitize=address -g3 
 
-SRCS =	main.c
+SRC =	main.c
 
-SRCS_FILES = $(addprefix srcs/, $(SRCS))
+SRC_FILES = $(addprefix src/, $(SRC))
 
-OBJS = $(SRCS:.c=.o)
+OBJS = $(SRC:.c=.o)
 
 OBJS_FILES = $(addprefix objs/, $(OBJS))
 
-HEADERS = includes/test.h
+HEADERS = includes/ft_nm.h
 
 LIB = libft/libft.a
 
@@ -27,7 +27,7 @@ libft	:
 			make -C libft
 
 
-objs/%.o:	srcs/%.c Makefile $(HEADERS)
+objs/%.o:	src/%.c Makefile $(HEADERS)
 			@mkdir -p objs
 			$(CC) $(DEBUG) $(OPTI) -c $< -o $@ 
 			
