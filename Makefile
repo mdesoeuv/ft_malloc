@@ -1,4 +1,4 @@
-NAME = ft_nm
+NAME = ft_malloc
 
 CC = gcc -Wall -Werror -Wextra 
 
