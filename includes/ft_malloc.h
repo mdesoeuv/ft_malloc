@@ -18,7 +18,7 @@ void    show_alloc_mem();
 #define NFASTBINS                   10
 #define NBINS                       128
 #define DEFAULT_MMAP_THRESHOLD      (128 * 1024)
-#define DEFAULT_MMAP_THRESHOLD_MAX  (1024 * 1024)
+#define DEFAULT_MMAP_THRESHOLD_MAX  (4 * 1024 * 1024 * sizeof(long)) // 32MB on 64-bit
 #define HEAP_MIN_SIZE               (32 * 1024)
 #define HEAP_MAX_SIZE               (1024 * 1024)
 
@@ -77,9 +77,9 @@ typedef struct malloc_state* mstate;
 #define IS_MMAPPED 0x2
 #define NON_MAIN_ARENA 0x4
 
-int is_mmapped(struct malloc_chunk* p);
-int prev_inuse(struct malloc_chunk* p);
-int is_non_main_arena(struct malloc_chunk* p);
+int is_mmapped(mchunkptr p);
+int prev_inuse(mchunkptr p);
+int is_non_main_arena(mchunkptr p);
 
 static struct malloc_state main_arena = {
     .mutex = PTHREAD_MUTEX_INITIALIZER,

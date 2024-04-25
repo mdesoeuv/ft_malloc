@@ -66,6 +66,16 @@ The simplified chunk-allocation strategy for small chunks is this:
 
 ## Bins
 
+### Types
+
+- fast
+- unsorted
+- small
+- large
+- tcache
+
+### Fast Bins
+
 ``` Bins for sizes < 512 bytes contain chunks of all the same size, spaced
 8 bytes apart. Larger bins are approximately logarithmically spaced:
 
