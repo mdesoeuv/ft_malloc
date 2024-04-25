@@ -53,8 +53,37 @@ The goal is to understand how memory allocation works at a lower level and to be
     memory mapping facilities, if supported.
 
 
+### Chunk Allocation Strategy
+
+The simplified chunk-allocation strategy for small chunks is this:     
+
+1) If there is a previously-freed chunk of memory, and that chunk is big enough to service the request, the heap manager will use that freed chunk for the new allocation.
+2) Otherwise, if there is available space at the top of the heap, the heap manager will allocate a new chunk out of that available space and use that.
+3) Otherwise, the heap manager will ask the kernel to add new memory to the end of the heap, and then allocates a new chunk from this newly allocated space.
+4) If all these strategies fail, the allocation can’t be serviced, and malloc returns NULL.
+
+
+
+## Bins
+
+``` Bins for sizes < 512 bytes contain chunks of all the same size, spaced
+8 bytes apart. Larger bins are approximately logarithmically spaced:
+
+64 bins of size       8
+32 bins of size      64
+16 bins of size     512
+8  bins of size    4096
+4  bins of size   32768
+2  bins of size  262144
+1  bin  of size what's left
+```
+
+
 ## Usage
 
+```bash
+export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+```
 
 ## Notions
 
@@ -69,5 +98,6 @@ The goal is to understand how memory allocation works at a lower level and to be
 ## Resources
 
 - https://sourceware.org/glibc/wiki/MallocInternals
+- https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/
 
 
