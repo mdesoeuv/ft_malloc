@@ -27,6 +27,13 @@ The goal is to understand how memory allocation works at a lower level and to be
 - Makefile must be provided
     - The Makefile will have to create a symbolic link libft_malloc.so pointing to libft_malloc_$HOSTTYPE.so so for example : `libft_malloc.so -> libft_malloc_intel-mac.so`
 - One global variable to manage allocations and one for the threadsafe
+-  With performance in mind, the number of calls to `mmap()` and `munmap()` must be limited : Some memory zones must be "pre-allocated" to store “small” and “medium” malloc
+- The size of these zones must be a multiple of `getpagesize()`
+- Each zone must contain at least 100 allocations.
+    - “TINY” mallocs, from 1 to n bytes, will be stored in N bytes big zones.
+    - “SMALL” mallocs, from (n+1) to m bytes, will be stored in M bytes big zones.
+    - “LARGE” mallocs, from (m+1) bytes and more, will be stored out of zone, which simply means with mmap(), they will be in a zone on their own.
+- The size of n, m, N and M must be defined to find a good compromise between speed (saving on system recall) and saving memory.
 
 
 
