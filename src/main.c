@@ -26,6 +26,10 @@ void *realloc(void *ptr, size_t size) {
 }
 
 
+void show_alloc_mem() {
+    ft_putstr("Show alloc mem!\n");
+}
+
 int main() {
 
     char *str = "Hello World!\n";

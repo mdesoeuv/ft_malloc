@@ -35,11 +35,22 @@ The goal is to understand how memory allocation works at a lower level and to be
     - “LARGE” mallocs, from (m+1) bytes and more, will be stored out of zone, which simply means with mmap(), they will be in a zone on their own.
 - The size of n, m, N and M must be defined to find a good compromise between speed (saving on system recall) and saving memory.
 
-
+- The memory given by our malloc must be aligned (on a multiple of the largest component) -> addresses must be a multiple of the requested size (1, 2, 4 or 8 bytes)
 
 
 ## Description
 
+
+## Algorithms
+
+- For large (>= 512 bytes) requests, it is a pure best-fit allocator,
+    with ties normally decided via FIFO (i.e. least recently used).
+- For small (<= 64 bytes by default) requests, it is a caching
+    allocator, that maintains pools of quickly recycled chunks.
+- In between, and for combinations of large and small requests, it does
+    the best it can trying to meet both goals at once.
+- For very large requests (>= 128KB by default), it relies on system
+    memory mapping facilities, if supported.
 
 
 ## Usage
