@@ -7,6 +7,24 @@ int dummy_function(void)
     return (0);
 }
 
+void *malloc(size_t size) {
+    (void)size;
+    ft_putstr("Malloc!\n");
+    return (NULL);
+}
+
+void free(void *ptr) {
+    (void)ptr;
+    ft_putstr("Free!\n");
+}
+
+void *realloc(void *ptr, size_t size) {
+    (void)ptr;
+    (void)size;
+    ft_putstr("Realloc!\n");
+    return (NULL);
+}
+
 
 int main() {
 
