@@ -1,61 +1,70 @@
-NAME = ft_malloc
+# Determine the host type if not provided
+ifeq ($(HOSTTYPE),)
+	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
+endif
 
-CC = gcc -Wall -Werror -Wextra 
+# Compiler and flags
+CC := gcc
+CFLAGS := -Wall -Werror -Wextra
+OPTIMIZATION_FLAGS := -Ofast -march=native -ffast-math
+DEBUG_FLAGS := -fsanitize=address -g3
 
-OPTI = -Ofast -march=native -ffast-math
+# Source files
+SRC_DIR := src
+SRC := main.c
+SRC_FILES := $(addprefix $(SRC_DIR)/, $(SRC))
 
-#DEBUG = -fsanitize=address -g3 
+# Object files
+OBJ_DIR := objs
+OBJS := $(SRC:.c=.o)
+OBJS_FILES := $(addprefix $(OBJ_DIR)/, $(OBJS))
 
-SRC =	main.c
+# Test files
+TEST_DIR := test
+TEST := test.c
+TEST_FILES := $(addprefix $(TEST_DIR)/, $(TEST))
+TEST_OBJ_DIR := $(TEST_DIR)/objs
+OBJS_TEST := $(TEST:.c=.o)
+OBJS_TEST_FILES := $(addprefix $(TEST_OBJ_DIR)/, $(OBJS_TEST))
 
-SRC_FILES = $(addprefix src/, $(SRC))
+# Header files
+HEADERS := includes/ft_malloc.h
 
-OBJS = $(SRC:.c=.o)
+# Library
+LIB_DIR := libft
+LIB := $(LIB_DIR)/libft.a
 
-OBJS_FILES = $(addprefix objs/, $(OBJS))
+# Target
+TARGET := libft_malloc_$(HOSTTYPE).so
 
-TEST = wiki_test.c
+all: libft $(TARGET) test
 
-TEST_FILES = $(addprefix test/, $(TEST))
+test: $(OBJS_TEST_FILES) $(TARGET)
+	$(CC) $(CFLAGS) $(OBJS_TEST_FILES) -o $(TEST_DIR)/test  -L . -l ft_malloc_$(HOSTTYPE)
 
-OBJS_TEST = $(TEST:.c=.o)
+$(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(LIB)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET) $(LIB)
 
-OBJS_TEST_FILES = $(addprefix test/objs/, $(OBJS_TEST))
+libft:
+	make -C $(LIB_DIR)
 
-HEADERS = includes/ft_nm.h
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
-LIB = libft/libft.a
+$(TEST_OBJ_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) | $(TEST_OBJ_DIR)
+	$(CC) $(CFLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
-all : libft $(NAME) test
+$(OBJ_DIR) $(TEST_OBJ_DIR):
+	mkdir -p $@
 
-test : $(OBJS_TEST_FILES)
-			$(CC) $(OBJS_TEST_FILES) -o test/wiki_test
+clean:
+	rm -rf $(OBJ_DIR) $(TEST_OBJ_DIR)
+	make clean -C $(LIB_DIR)
 
-$(NAME)	:	$(OBJS_FILES) $(LIB)
-			$(CC) $(DEBUG) $(OBJS_FILES) -o $(NAME) libft/libft.a
+fclean: clean
+	rm -f $(TARGET) $(TEST_DIR)/wiki_test
+	make fclean -C $(LIB_DIR)
 
-libft	:	
-			make -C libft
+re: fclean all
 
-
-objs/%.o:	src/%.c Makefile $(HEADERS)
-			@mkdir -p objs
-			$(CC) $(DEBUG) $(OPTI) -c $< -o $@ 
-
-test/objs/%.o:	test/%.c Makefile $(HEADERS)
-			@mkdir -p test/objs
-			$(CC) $(DEBUG) $(OPTI) -c $< -o $@
-			
-clean	:
-			rm -rf objs/
-			rm -rf test/objs/
-			make clean -C libft
-
-fclean	:	clean
-			rm -f $(NAME)
-			rm -f test/wiki_test
-			make fclean -C libft
-
-re		:	fclean all
-	
-.PHONY	:	libft all clean re fclean
+.PHONY: all test libft clean fclean re

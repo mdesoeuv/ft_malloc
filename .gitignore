@@ -53,3 +53,4 @@ dkms.conf
 ft_nm
 test/objs
 test/wiki_test
+test/test
