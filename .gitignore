@@ -54,3 +54,4 @@ ft_nm
 test/objs
 test/wiki_test
 test/test
+test/test_exec

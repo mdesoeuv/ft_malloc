@@ -40,7 +40,7 @@ TARGET := libft_malloc_$(HOSTTYPE).so
 all: libft $(TARGET) test
 
 test: $(OBJS_TEST_FILES) $(TARGET)
-	$(CC) $(CFLAGS) $(OBJS_TEST_FILES) -o $(TEST_DIR)/test  -L . -l ft_malloc_$(HOSTTYPE)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $(TEST_DIR)/test_exec  -L . -l ft_malloc_$(HOSTTYPE)
 
 $(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(LIB)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET) $(LIB)
@@ -52,7 +52,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
 $(TEST_OBJ_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) | $(TEST_OBJ_DIR)
-	$(CC) $(CFLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
 $(OBJ_DIR) $(TEST_OBJ_DIR):
 	mkdir -p $@
@@ -62,7 +62,7 @@ clean:
 	make clean -C $(LIB_DIR)
 
 fclean: clean
-	rm -f $(TARGET) $(TEST_DIR)/wiki_test
+	rm -f $(TARGET) $(TEST_DIR)/test_exec
 	make fclean -C $(LIB_DIR)
 
 re: fclean all
