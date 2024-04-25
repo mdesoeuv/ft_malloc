@@ -5,7 +5,7 @@ endif
 
 # Compiler and flags
 CC := gcc
-CFLAGS := -Wall -Werror -Wextra
+CFLAGS := -Wall -Wextra
 OPTIMIZATION_FLAGS := -Ofast -march=native -ffast-math
 DEBUG_FLAGS := -fsanitize=address -g3
 

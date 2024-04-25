@@ -58,7 +58,7 @@ int main() {
 
     char *str = "Hello World!\n";
     ft_putstr(str);
-
+    (void)main_arena;
 
 
     return 0;
