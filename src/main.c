@@ -60,6 +60,6 @@ int main() {
     ft_putstr(str);
     (void)main_arena;
 
-
+    (void)main_arena;
     return 0;
 }

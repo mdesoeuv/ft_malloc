@@ -7,7 +7,7 @@ endif
 CC := gcc
 CFLAGS := -Wall -Wextra
 OPTIMIZATION_FLAGS := -Ofast -march=native -ffast-math
-DEBUG_FLAGS := -fsanitize=address -g3
+DEBUG_FLAGS := #-fsanitize=address -g3
 
 # Source files
 SRC_DIR := src

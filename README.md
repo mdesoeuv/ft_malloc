@@ -92,7 +92,7 @@ The simplified chunk-allocation strategy for small chunks is this:
 ## Usage
 
 ```bash
-export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+LD_PRELOAD=./libft_malloc_x86_64_Darwin.so LD_LIBRARY_PATH=$(pwd) ./test/test_exec
 ```
 
 ## Notions
