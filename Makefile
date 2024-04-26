@@ -44,10 +44,10 @@ TARGET := libft_malloc_$(HOSTTYPE).so
 all: libft libftprintf $(TARGET) test
 
 test: $(OBJS_TEST_FILES) $(TARGET) $(LIB) $(FT_PRINTF)
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $(TEST_DIR)/test_exec  -L . -l ft_malloc_$(HOSTTYPE) -L $(FT_PRINTF_DIR) -l ftprintf
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $(TEST_DIR)/test_exec -L $(LIB_DIR) -l ft -L . -l ft_malloc_$(HOSTTYPE) -L $(FT_PRINTF_DIR) -l ftprintf
 
 $(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(LIB) $(FT_PRINTF)
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET) $(LIB)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET) -L $(LIB_DIR) -l ft -L $(FT_PRINTF_DIR) -l ftprintf
 
 libft:
 	make -C $(LIB_DIR)
@@ -55,10 +55,10 @@ libft:
 libftprintf:
 	make -C $(FT_PRINTF_DIR)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) Makefile | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
-$(TEST_OBJ_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) | $(TEST_OBJ_DIR)
+$(TEST_OBJ_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) Makefile | $(TEST_OBJ_DIR)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
 $(OBJ_DIR) $(TEST_OBJ_DIR):
