@@ -23,12 +23,12 @@ void initialize_log_level() {
 
 int dummy_function(void)
 {
-    ft_putstr("Dummy function!\n");
+    ft_log("Dummy function!\n");
     return (0);
 }
 
 void *malloc(size_t size) {
-    ft_putstr("Malloc!\n");
+    ft_log("Malloc!\n");
 
     void* ptr = mmap(
         NULL,
@@ -42,11 +42,11 @@ void *malloc(size_t size) {
     void* size_addr = ptr + sizeof(void*);
     *(size_t*)size_addr = size;
 
-    ft_printf("Size: %d\n", size);
-    ft_printf("Ptr: %p\n", ptr);
+    ft_log("Size: %d\n", size);
+    ft_log("Ptr: %p\n", ptr);
 
     if (ptr == MAP_FAILED) {
-        ft_putstr("Error while allocating memory\n");
+        ft_log("Error while allocating memory\n");
         return (NULL);
     }
 
@@ -55,30 +55,30 @@ void *malloc(size_t size) {
 }
 
 void free(void *ptr) {
-    ft_putstr("Free!\n");
+    ft_log("Free!\n");
     if (ptr == NULL) {
-        ft_putstr("Error: Null pointer\n");
+        ft_log("Error: Null pointer\n");
         return;
     }
     size_t *size;
     size = ptr + sizeof(void*);
-    ft_printf("Size: %d\n", *size);
+    ft_log("Size: %d\n", *size);
 
     int res = munmap(ptr, *size);
     if (res == -1) {
-        ft_putstr("Error while freeing memory\n");
+        ft_log("Error while freeing memory\n");
     }
 }
 
 void *realloc(void *ptr, size_t size) {
-    ft_putstr("Realloc!\n");
+    ft_log("Realloc!\n");
     if (!ptr) {
         return malloc(size);
     }
 
     size_t *old_size;
     old_size = ptr + sizeof(void*);
-    ft_printf("Old size: %d\n", *old_size);
+    ft_log("Old size: %d\n", *old_size);
 
     void* new_ptr = mmap(
         NULL,
@@ -89,7 +89,7 @@ void *realloc(void *ptr, size_t size) {
         0
     );
     if (new_ptr == MAP_FAILED) {
-        ft_putstr("Error while reallocating memory\n");
+        ft_log("Error while reallocating memory\n");
         return (NULL);
     }
 
@@ -103,7 +103,7 @@ void *realloc(void *ptr, size_t size) {
 
 
 void show_alloc_mem() {
-    ft_putstr("Show alloc mem!\n");
+    ft_log("Show alloc mem!\n");
 }
 
 int is_mmapped(mchunkptr p) {
@@ -133,7 +133,7 @@ int current_in_use(mchunkptr p) {
 int main() {
 
     char *str = "Hello World!\n";
-    ft_putstr(str);
+    ft_log(str);
     (void)main_arena;
 
     (void)main_arena;
