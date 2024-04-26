@@ -3,6 +3,24 @@
 #include "../includes/ft_malloc.h"
 
 
+int LOG_LEVEL = 0;
+
+void initialize_log_level() __attribute__((constructor));
+
+void initialize_log_level() {
+    char* log = getenv("FT_MALLOC_LOG_LEVEL");
+    if (!log) {
+        ft_printf("LOG LEVEL SET TO DEFAULT\n");
+        return ;
+    }
+    int res = ft_atoi(log);
+    if (res > 0) {
+        ft_printf("LOG_LEVEL: DEBUG\n");
+        LOG_LEVEL = 1;;
+    }
+}
+
+
 int dummy_function(void)
 {
     ft_putstr("Dummy function!\n");

@@ -5,6 +5,17 @@
 #include <unistd.h> // getpagesize
 #include <sys/resource.h> // getrlimit
 #include <pthread.h> // pthread_mutex_t
+#include <stdlib.h> // getenv
+#include "../ft_printf/ft_printf.h"
+
+
+#define ft_log(format, ...) \
+    do { \
+        if (LOG_LEVEL) { \
+            ft_printf(format, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
 
 int     dummy_function(void);
 void    free(void *ptr);
