@@ -19,7 +19,7 @@
 
 void	putnbr_base(int nbr, char *base, int *total_length);
 void	putnbr_base_u(unsigned int n, char *base, int *total_length);
-void	putnbr_base_u_l(unsigned long int n, char *base, int *total_length);
+void	putnbr_base_u_l(long unsigned int n, char *base, int *total_length);
 void	putchar_ret(char c, int *total_length);
 int		ft_strlen_print(char *s);
 void	putstr_ret(char *s, int *total_length);
