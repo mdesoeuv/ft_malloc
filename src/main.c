@@ -1,5 +1,7 @@
 #include "../libft/libft.h"
+#include "../ft_printf/ft_printf.h"
 #include "../includes/ft_malloc.h"
+
 
 int dummy_function(void)
 {
@@ -8,21 +10,77 @@ int dummy_function(void)
 }
 
 void *malloc(size_t size) {
-    (void)size;
     ft_putstr("Malloc!\n");
-    return (NULL);
+
+    void* ptr = mmap(
+        NULL,
+        size,
+        PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0
+    );
+
+    void* size_addr = ptr + sizeof(void*);
+    *(size_t*)size_addr = size;
+
+    ft_printf("Size: %d\n", size);
+    ft_printf("Ptr: %p\n", ptr);
+
+    if (ptr == MAP_FAILED) {
+        ft_putstr("Error while allocating memory\n");
+        return (NULL);
+    }
+
+    
+    return ptr;
 }
 
 void free(void *ptr) {
-    (void)ptr;
     ft_putstr("Free!\n");
+    if (ptr == NULL) {
+        ft_putstr("Error: Null pointer\n");
+        return;
+    }
+    size_t *size;
+    size = ptr + sizeof(void*);
+    ft_printf("Size: %d\n", *size);
+
+    int res = munmap(ptr, *size);
+    if (res == -1) {
+        ft_putstr("Error while freeing memory\n");
+    }
 }
 
 void *realloc(void *ptr, size_t size) {
-    (void)ptr;
-    (void)size;
     ft_putstr("Realloc!\n");
-    return (NULL);
+    if (!ptr) {
+        return malloc(size);
+    }
+
+    size_t *old_size;
+    old_size = ptr + sizeof(void*);
+    ft_printf("Old size: %d\n", *old_size);
+
+    void* new_ptr = mmap(
+        NULL,
+        size,
+        PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0
+    );
+    if (new_ptr == MAP_FAILED) {
+        ft_putstr("Error while reallocating memory\n");
+        return (NULL);
+    }
+
+    void* new_size_addr = new_ptr + sizeof(void*);
+    *(size_t*)new_size_addr = size;
+
+    free(ptr);
+
+    return new_ptr;
 }
 
 
