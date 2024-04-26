@@ -10,7 +10,11 @@
           "terminal.integrated.defaultProfile.linux": "bash",
           "extensions.verifySignature": false
         },
-        "extensions": ["ms-vscode.cpptools", "ms-vscode.cmake-tools"]
+        "extensions": [
+            "ms-vscode.cpptools",
+            "ms-vscode.cmake-tools",
+            "Github.copilot",
+        ]
       }
     }
   }
