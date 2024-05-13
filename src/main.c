@@ -39,17 +39,25 @@ void *malloc(size_t size) {
         0
     );
 
-    void* size_addr = ptr + sizeof(void*);
-    *(size_t*)size_addr = size;
-
-    ft_log("Size: %d\n", size);
-    ft_log("Ptr: %p\n", ptr);
+    int page_size = getpagesize();
 
     if (ptr == MAP_FAILED) {
         ft_log("Error while allocating memory\n");
         return (NULL);
     }
 
+    BLOCK_SIZE(ptr) = size;
+    BLOCK_ALLOCATED(ptr) = 1;
+
+    block_header *next_block = NEXT_BLOCK_HEADER(ptr);
+    BLOCK_SIZE(next_block) = page_size - size - sizeof(block_header);
+    BLOCK_ALLOCATED(next_block) = 0;
+
+    // void* size_addr = ptr + sizeof(void*);
+    // *(size_t*)size_addr = size;
+
+    // ft_log("Size: %d\n", size);
+    // ft_log("Ptr: %p\n", ptr);
     
     return ptr;
 }
