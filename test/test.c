@@ -9,7 +9,6 @@ int main(void)
 {
 	ft_printf("LOG_LEVEL: %d\n", LOG_LEVEL);
 	ft_log("TEST LOG\n");
-	(void)main_arena;
 	void* ptr = malloc(10 * sizeof(char));
 	if (!ptr)
 		ft_putstr("Malloc failed\n");

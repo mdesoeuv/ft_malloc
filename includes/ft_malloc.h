@@ -92,12 +92,6 @@ int is_mmapped(mchunkptr p);
 int prev_inuse(mchunkptr p);
 int is_non_main_arena(mchunkptr p);
 
-static struct malloc_state main_arena = {
-    .mutex = PTHREAD_MUTEX_INITIALIZER,
-    .next = NULL,
-    .attached_threads = 1,
-};
-
 
 #define ALIGNMENT 16
 #define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~(ALIGNMENT-1))

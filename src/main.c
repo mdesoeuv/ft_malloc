@@ -22,7 +22,7 @@ void initialize_log_level() {
 
 
 void *malloc(size_t size) {
-    ft_log("Malloc!\n");
+    ft_log("Malloc! Requested size: %d\n", size);
 
     void* ptr = mmap(
         NULL,
@@ -135,14 +135,4 @@ int current_in_use(mchunkptr p) {
     if (p->fd->mchunk_prev_size & PREV_INUSE)
         return (1);
     return (0);
-}
-
-int main() {
-
-    char *str = "Hello World!\n";
-    ft_log(str);
-    (void)main_arena;
-
-    (void)main_arena;
-    return 0;
 }
