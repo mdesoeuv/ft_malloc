@@ -30,7 +30,7 @@ int dummy_function(void)
 void *malloc(size_t size) {
     ft_log("Malloc!\n");
 
-    mmap_ptr* ptr = mmap(
+    void* ptr = mmap(
         NULL,
         size,
         PROT_READ | PROT_WRITE,
@@ -39,17 +39,19 @@ void *malloc(size_t size) {
         0
     );
 
-    if (ptr->ptr == MAP_FAILED) {
+    void* size_addr = ptr + sizeof(void*);
+    *(size_t*)size_addr = size;
+
+    ft_log("Size: %d\n", size);
+    ft_log("Ptr: %p\n", ptr);
+
+    if (ptr == MAP_FAILED) {
         ft_log("Error while allocating memory\n");
         return (NULL);
     }
 
-    ptr->size = size;
-
-    ft_log("Size: %d\n", size);
-    ft_log("Ptr: %p\n", ptr);
-    ft_log("Allocated: %p\n", ptr->allocated);
-    return *ptr->allocated;
+    
+    return ptr;
 }
 
 void free(void *ptr) {
@@ -58,10 +60,11 @@ void free(void *ptr) {
         ft_log("Error: Null pointer\n");
         return;
     }
-    mmap_ptr* free_ptr = ptr - sizeof(size_t*) - sizeof(size_t);
-    ft_log("Size: %d\n", free_ptr->size);
+    size_t *size;
+    size = ptr + sizeof(void*);
+    ft_log("Size: %d\n", *size);
 
-    int res = munmap(free_ptr, free_ptr->size);
+    int res = munmap(ptr, *size);
     if (res == -1) {
         ft_log("Error while freeing memory\n");
     }
@@ -131,6 +134,8 @@ int main() {
 
     char *str = "Hello World!\n";
     ft_log(str);
+    (void)main_arena;
+
     (void)main_arena;
     return 0;
 }

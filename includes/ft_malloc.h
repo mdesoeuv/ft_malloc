@@ -33,13 +33,6 @@ void    show_alloc_mem();
 #define HEAP_MIN_SIZE               (32 * 1024)
 #define HEAP_MAX_SIZE               (1024 * 1024)
 
-struct mmap_ptr {
-    size_t* ptr;
-    size_t size;
-    size_t* allocated;
-}; 
-typedef struct mmap_ptr mmap_ptr;
-
 struct malloc_chunk {
 
   size_t      mchunk_prev_size;  /* Size of previous chunk (if free).  */
