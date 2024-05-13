@@ -9,13 +9,16 @@ int main(void)
 {
 	ft_printf("LOG_LEVEL: %d\n", LOG_LEVEL);
 	ft_log("TEST LOG\n");
-	void* ptr = malloc(10 * sizeof(char));
+	void* ptr = malloc(12 * sizeof(char));
 	if (!ptr)
 		ft_putstr("Malloc failed\n");
 	show_block_status(ptr);
+	ft_memcpy(ptr, "Hello World", 12);
+	ft_printf("ptr: %s\n", ptr);
 	void* ptr2 = realloc(ptr, 100 * sizeof(char));
 	if (!ptr2)
 		ft_putstr("Realloc failed\n");
+	ft_printf("ptr2: %s\n", ptr2);
 	show_block_status(ptr2);
 	free(ptr2);
 	return 0;

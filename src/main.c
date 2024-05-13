@@ -23,6 +23,10 @@ void initialize_log_level() {
 
 void *malloc(size_t size) {
     ft_log("Malloc! Requested size: %d\n", size);
+    if (size == 0) {
+        ft_log("Size is 0: returning NULL\n");
+        return (NULL);
+    }
 
     void* ptr = mmap(
         NULL,
@@ -73,6 +77,11 @@ void *realloc(void *ptr, size_t size) {
         ft_log("Null pointer: the address was not previously allocated.\n");
         return malloc(size);
     }
+    if (size == 0) {
+        ft_log("Size is 0: freeing memory\n");
+        free(ptr);
+        return (NULL);
+    }
 
     size_t old_size = BLOCK_SIZE(ptr);
     ft_log("Old size: %d\n", old_size);
@@ -94,6 +103,8 @@ void *realloc(void *ptr, size_t size) {
     new_header->size = size + sizeof(block_header);
     new_header->allocated = 1;
 
+    size_t min_size = old_size < size ? old_size : size;
+    ft_memcpy(BLOCK_PAYLOAD(new_ptr), ptr, min_size);
     free(ptr);
 
     return BLOCK_PAYLOAD(new_ptr);
