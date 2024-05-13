@@ -17,11 +17,11 @@
     } while(0)
 
 
-int     dummy_function(void);
 void    free(void *ptr);
 void    *malloc(size_t size);
 void    *realloc(void *ptr, size_t size);
 void    show_alloc_mem();
+void    show_block_status(void *ptr);
 
 #define MALLOC_ALIGNMENT            16
 #define MIN_CHUNK_SIZE              (sizeof(struct malloc_chunk))
@@ -98,19 +98,27 @@ static struct malloc_state main_arena = {
     .attached_threads = 1,
 };
 
+
 #define ALIGNMENT 16
 #define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~(ALIGNMENT-1))
 
+
+/*
+    Block header structure
+*/
 typedef struct {
     size_t size;
     char allocated;
 } block_header;
 
-#define HEADER_ADDR(block_payload) ((char*)block_payload - sizeof(block_header))
-#define BLOCK_SIZE(header) ((block_header*)HEADER_ADDR(header))->size
-#define BLOCK_ALLOCATED(header) ((block_header*)HEADER_ADDR(header))->allocated
-#define BLOCK_PAYLOAD(header) ((void*)HEADER_ADDR(ptr) + sizeof(block_header))
-#define NEXT_BLOCK_HEADER(header) ((block_header*)HEADER_ADDR(header) + BLOCK_SIZE(header) + sizeof(block_header))
-#define NEXT_BLOCK_PAYLOAD(header) ((void*)NEXT_BLOCK_HEADER(header) + sizeof(block_header))
+/* 
+    Macros to access block header fields
+*/
+#define HEADER_ADDR(ptr) ((block_header*)((char*)ptr - sizeof(block_header)))
+#define BLOCK_SIZE(ptr) (HEADER_ADDR(ptr))->size
+#define BLOCK_ALLOCATED(ptr) (HEADER_ADDR(ptr))->allocated
+#define BLOCK_PAYLOAD(ptr) (ptr + sizeof(block_header))
+#define NEXT_BLOCK_HEADER(ptr) (HEADER_ADDR(ptr) + BLOCK_SIZE(ptr) + sizeof(block_header))
+#define NEXT_BLOCK_PAYLOAD(ptr) ((void*)NEXT_BLOCK_HEADER(ptr) + sizeof(block_header))
 
 #endif

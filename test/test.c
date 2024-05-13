@@ -9,14 +9,15 @@ int main(void)
 {
 	ft_printf("LOG_LEVEL: %d\n", LOG_LEVEL);
 	ft_log("TEST LOG\n");
-	int a = 0;
-	dummy_function();
 	(void)main_arena;
 	void* ptr = malloc(10 * sizeof(char));
 	if (!ptr)
 		ft_putstr("Malloc failed\n");
+	show_block_status(ptr);
 	void* ptr2 = realloc(ptr, 100 * sizeof(char));
-	(void)a;
+	if (!ptr2)
+		ft_putstr("Realloc failed\n");
+	show_block_status(ptr2);
 	free(ptr2);
 	return 0;
 }

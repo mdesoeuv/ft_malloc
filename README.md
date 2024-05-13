@@ -91,9 +91,24 @@ The simplified chunk-allocation strategy for small chunks is this:
 
 ## Usage
 
+### Tests
 ```bash
 LD_PRELOAD=./libft_malloc_x86_64_Darwin.so LD_LIBRARY_PATH=$(pwd) ./test/test_exec
 ```
+
+or using the wrapper script
+```bash
+./preload_wapper.sh test/test_exec
+```
+
+with existing binary
+```bash
+make && ./preload_wapper.sh cat
+```
+
+### Debug
+
+The log level is set to `DEBUG` if the environment variable `FT_MALLOC_LOG_LEVEL` is set to `1`
 
 ## Notions
 
@@ -102,6 +117,7 @@ LD_PRELOAD=./libft_malloc_x86_64_Darwin.so LD_LIBRARY_PATH=$(pwd) ./test/test_ex
 - **Chunk**: A small range of memory that can be allocated (owned by the application), freed (owned by glibc), or combined with adjacent chunks into larger ranges. Note that a chunk is a wrapper around the block of memory that is given to the application. Each chunk exists in one heap and belongs to one arena.
 - **Memory**: A portion of the application's address space which is typically backed by RAM or swap.
 
+- **Alignment**: The address of an N-bytes value must be divisible by N.
 
 - minimum size of a chunk is `4*sizeof(void*)`
 
