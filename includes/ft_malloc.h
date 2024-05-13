@@ -98,4 +98,19 @@ static struct malloc_state main_arena = {
     .attached_threads = 1,
 };
 
+#define ALIGNMENT 16
+#define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~(ALIGNMENT-1))
+
+typedef struct {
+    size_t size;
+    char allocated;
+} block_header;
+
+#define HEADER_ADDR(block_payload) ((char*)block_payload - sizeof(block_header))
+#define BLOCK_SIZE(header) ((block_header*)HEADER_ADDR(header))->size
+#define BLOCK_ALLOCATED(header) ((block_header*)HEADER_ADDR(header))->allocated
+#define BLOCK_PAYLOAD(header) ((void*)HEADER_ADDR(ptr) + sizeof(block_header))
+#define NEXT_BLOCK_HEADER(header) ((block_header*)HEADER_ADDR(header) + BLOCK_SIZE(header) + sizeof(block_header))
+#define NEXT_BLOCK_PAYLOAD(header) ((void*)NEXT_BLOCK_HEADER(header) + sizeof(block_header))
+
 #endif

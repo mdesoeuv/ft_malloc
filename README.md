@@ -109,5 +109,6 @@ LD_PRELOAD=./libft_malloc_x86_64_Darwin.so LD_LIBRARY_PATH=$(pwd) ./test/test_ex
 
 - https://sourceware.org/glibc/wiki/MallocInternals
 - https://azeria-labs.com/heap-exploitation-part-1-understanding-the-glibc-heap-implementation/
+- https://my.eng.utah.edu/~cs4400/malloc.pdf
 
 
