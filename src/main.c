@@ -54,7 +54,6 @@ void *malloc(size_t size) {
 void free(void *ptr) {
     ft_log("Free!\n");
     if (ptr == NULL) {
-        ft_log("Error: Null pointer\n");
         return;
     }
     block_header *header = HEADER_ADDR(ptr);
