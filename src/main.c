@@ -56,7 +56,6 @@ void free(void *ptr) {
     if (ptr == NULL) {
         return;
     }
-    block_header *header = HEADER_ADDR(ptr);
     size_t size = BLOCK_SIZE(ptr);
 
     ft_log("Size: %d\n", size);
