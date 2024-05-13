@@ -48,38 +48,6 @@ struct malloc_chunk {
 
 typedef struct malloc_chunk* mchunkptr;
 
-struct heap_info {
-    struct malloc_state* ar_ptr;
-    struct heap_info* prev;
-    struct heap_info* next;
-    size_t size;
-};
-
-struct malloc_state
-{
-  pthread_mutex_t   mutex;
-  mchunkptr         fastbins[NFASTBINS];
-  mchunkptr         top;
-  mchunkptr         bins[NBINS];
-
-  /* Linked list */
-  struct malloc_state *next;
-
-  /* Linked list for free arenas.  Access to this field is serialized
-     by free_list_lock in arena.c.  */
-  struct malloc_state *next_free;
-  
-  /* Number of threads attached to this arena.  0 if the arena is on
-     the free list.  Access to this field is serialized by
-     free_list_lock in arena.c.  */
-  size_t attached_threads;
-
-  /* Memory allocated from the system in this arena.  */
-  size_t system_mem;
-  size_t max_system_mem;
-};
-
-typedef struct malloc_state* mstate;
 
 #define MMAP(addr, size, prot, flags) \
     mmap((addr), (size), (prot), (flags)|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)
@@ -100,9 +68,10 @@ int is_non_main_arena(mchunkptr p);
 /*
     Block header structure
 */
-typedef struct {
-    size_t size;
-    char allocated;
+typedef struct block_header_t {
+    size_t                  size;
+    char                    allocated;
+    struct block_header_t*  next;
 } block_header;
 
 /* 
@@ -112,7 +81,22 @@ typedef struct {
 #define BLOCK_SIZE(ptr) (HEADER_ADDR(ptr))->size
 #define BLOCK_ALLOCATED(ptr) (HEADER_ADDR(ptr))->allocated
 #define BLOCK_PAYLOAD(ptr) (ptr + sizeof(block_header))
-#define NEXT_BLOCK_HEADER(ptr) (HEADER_ADDR(ptr) + BLOCK_SIZE(ptr) + sizeof(block_header))
+#define NEXT_BLOCK_HEADER(ptr) ((void*)HEADER_ADDR(ptr) + BLOCK_SIZE(ptr))
 #define NEXT_BLOCK_PAYLOAD(ptr) ((void*)NEXT_BLOCK_HEADER(ptr) + sizeof(block_header))
+
+
+typedef struct heap_info_t {
+    void* start;
+    void* next;
+    size_t size;
+} heap_info;
+
+void push_chunk_to_heap(heap_info* heap, block_header* chunk);
+
+// static heap_info g_heap = {
+//     .start = NULL,
+//     .next = NULL,
+//     .size = 0
+// };
 
 #endif

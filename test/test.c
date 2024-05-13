@@ -13,6 +13,7 @@ int main(void)
 	if (!ptr)
 		ft_putstr("Malloc failed\n");
 	show_block_status(ptr);
+	show_alloc_mem();
 	ft_memcpy(ptr, "Hello World", 12);
 	ft_printf("ptr: %s\n", ptr);
 	void* ptr2 = realloc(ptr, 100 * sizeof(char));
@@ -20,6 +21,7 @@ int main(void)
 		ft_putstr("Realloc failed\n");
 	ft_printf("ptr2: %s\n", ptr2);
 	show_block_status(ptr2);
+	show_alloc_mem();
 	free(ptr2);
 	return 0;
 }

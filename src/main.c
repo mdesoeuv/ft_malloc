@@ -4,6 +4,7 @@
 
 
 int LOG_LEVEL = 0;
+static heap_info g_heap = {NULL, NULL, 0};
 
 void initialize_log_level() __attribute__((constructor));
 
@@ -44,7 +45,7 @@ void *malloc(size_t size) {
         ft_log("Error while allocating memory\n");
         return (NULL);
     }
-    block_header *header = (block_header *)ptr;
+    block_header* header = (block_header *)ptr;
     header->size = size + sizeof(block_header);
     header->allocated = 1;
 
@@ -52,6 +53,8 @@ void *malloc(size_t size) {
     ft_log("Header address: %p\n", header);
     ft_log("Payload address: %p\n", (char *)header + sizeof(block_header));
     
+    push_chunk_to_heap(&g_heap, header);
+
     return BLOCK_PAYLOAD(ptr);
 }
 
@@ -69,6 +72,8 @@ void free(void *ptr) {
         ft_log("Error while freeing memory\n");
     }
     ft_log("Memory freed\n");
+
+    // TODO: remove block from heap_info
 }
 
 void *realloc(void *ptr, size_t size) {
@@ -113,6 +118,12 @@ void *realloc(void *ptr, size_t size) {
 
 void show_alloc_mem() {
     ft_log("Show alloc mem!\n");
+    block_header* current = g_heap.start;
+    ft_log("Heap size: %d\n", g_heap.size);
+    while (current) {
+        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        current = current->next;
+    }
 }
 
 void show_block_status(void *ptr) {
@@ -146,4 +157,25 @@ int current_in_use(mchunkptr p) {
     if (p->fd->mchunk_prev_size & PREV_INUSE)
         return (1);
     return (0);
+}
+
+void push_chunk_to_heap(heap_info* heap, block_header* chunk) {
+    if (!heap || !chunk) {
+        ft_log("push_chunk_to_heap: Invalid arguments\n");
+        return;
+    }
+    if (!heap->start) {
+        ft_log("push_chunk_to_heap: Heap is empty: initializing heap\n");
+        heap->start = chunk;
+        heap->next = NULL;
+        heap->size = chunk->size;
+        return;
+    }
+    heap_info* current = heap->start;
+    while (current->next) {
+        current = current->next;
+    }
+    current->next = (heap_info*)chunk;
+    heap->size += chunk->size;
+    return;
 }
