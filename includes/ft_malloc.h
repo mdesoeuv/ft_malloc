@@ -23,7 +23,9 @@ void    *realloc(void *ptr, size_t size);
 void    show_alloc_mem();
 void    show_block_status(void *ptr);
 
-#define MALLOC_ALIGNMENT            16
+
+#define ALIGNMENT 16 // must be a power of 2
+#define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~(ALIGNMENT-1))
 #define MIN_CHUNK_SIZE              (sizeof(struct malloc_chunk))
 #define MAX_FAST_SIZE               160
 #define NFASTBINS                   10
@@ -32,6 +34,12 @@ void    show_block_status(void *ptr);
 #define DEFAULT_MMAP_THRESHOLD_MAX  (4 * 1024 * 1024 * sizeof(long)) // 32MB on 64-bit
 #define HEAP_MIN_SIZE               (32 * 1024)
 #define HEAP_MAX_SIZE               (1024 * 1024)
+
+
+typedef struct malloc_header {
+    size_t prev_size;
+    size_t size;
+} malloc_header;
 
 struct malloc_chunk {
 
@@ -52,9 +60,10 @@ typedef struct malloc_chunk* mchunkptr;
 #define MMAP(addr, size, prot, flags) \
     mmap((addr), (size), (prot), (flags)|MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)
 
-#define PREV_INUSE 0x1
-#define IS_MMAPPED 0x2
-#define NON_MAIN_ARENA 0x4
+
+#define PREV_INUSE      0b001
+#define IS_MMAPPED      0b010
+#define NON_MAIN_ARENA  0b100
 
 int is_mmapped(mchunkptr p);
 int prev_inuse(mchunkptr p);
@@ -91,7 +100,7 @@ typedef struct heap_info_t {
     size_t size;
 } heap_info;
 
-void push_chunk_to_heap(heap_info* heap, block_header* chunk);
-void remove_chunk_from_heap(heap_info* heap, block_header* chunk);
-int get_page_count(size_t size, int page_size);
+void    push_chunk_to_heap(heap_info* heap, block_header* chunk);
+void    remove_chunk_from_heap(heap_info* heap, block_header* chunk);
+int     get_page_count(size_t size, int page_size);
 #endif
