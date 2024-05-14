@@ -29,7 +29,7 @@ void *malloc(size_t size) {
         return (NULL);
     }
 
-    size = size + sizeof(block_header);
+    size = ALIGN(size + sizeof(block_header));
     int page_size = getpagesize();
     int page_count = get_page_count(size, page_size);
     size = page_count * page_size;
@@ -79,7 +79,7 @@ void free(void *ptr) {
 }
 
 void *realloc(void *ptr, size_t size) {
-    ft_log("Realloc!\n");
+    ft_log("Realloc! Requested size: %d\n", size);
     if (!ptr) {
         ft_log("Null pointer: the address was not previously allocated.\n");
         return malloc(size);
@@ -92,10 +92,10 @@ void *realloc(void *ptr, size_t size) {
 
     size_t old_size = BLOCK_SIZE(ptr);
     ft_log("Old size: %d\n", old_size);
-    size = size + sizeof(block_header);
+    size = ALIGN(size + sizeof(block_header));
     int page_size = getpagesize();
     int page_count = get_page_count(size, page_size);
-    ft_log("Requested size: %d\n", size);
+    ft_log("Requested aligned size: %d\n", size);
     ft_log("Requested page count: %d\n", page_count);
     size = page_count * page_size;
     void* new_ptr = mmap(
