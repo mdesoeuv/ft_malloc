@@ -117,22 +117,25 @@ void *realloc(void *ptr, size_t size) {
 
 
 void show_alloc_mem() {
-    ft_log("Show alloc mem!\n");
+    ft_log("-- Show alloc mem! --\n");
     block_header* current = g_heap.start;
     ft_log("Heap size: %d\n", g_heap.size);
     while (current) {
         ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
         current = current->next;
     }
+    ft_log("-- End of show alloc mem! --\n");
 }
 
 void show_block_status(void *ptr) {
+    ft_log("--------------------\n");
     ft_log("Memory block status: \n");
     ft_log("Size: %d\n", BLOCK_SIZE(ptr));
     ft_log("Allocated: %d\n", BLOCK_ALLOCATED(ptr));
     ft_log("Header address: %p\n", HEADER_ADDR(ptr));
     ft_log("Payload address: %p\n", BLOCK_PAYLOAD(ptr));
     ft_log("Next block header: %p\n", NEXT_BLOCK_HEADER(ptr));
+    ft_log("--------------------\n");
 }
 
 int is_mmapped(mchunkptr p) {
@@ -171,11 +174,11 @@ void push_chunk_to_heap(heap_info* heap, block_header* chunk) {
         heap->size = chunk->size;
         return;
     }
-    heap_info* current = heap->start;
+    block_header* current = heap->start;
     while (current->next) {
         current = current->next;
     }
-    current->next = (heap_info*)chunk;
+    current->next = chunk;
     heap->size += chunk->size;
     return;
 }
