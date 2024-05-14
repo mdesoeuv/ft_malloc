@@ -22,6 +22,10 @@ int main(void)
 	ft_printf("ptr2: %s\n", ptr2);
 	show_block_status(ptr2);
 	show_alloc_mem();
+	void* ptr3 = malloc(100 * sizeof(char));
+	if (!ptr3)
+		ft_putstr("Malloc failed\n");
+	show_alloc_mem();
 	free(ptr2);
 	return 0;
 }
