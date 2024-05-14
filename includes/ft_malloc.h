@@ -93,5 +93,5 @@ typedef struct heap_info_t {
 
 void push_chunk_to_heap(heap_info* heap, block_header* chunk);
 void remove_chunk_from_heap(heap_info* heap, block_header* chunk);
-
+int get_page_count(size_t size, int page_size);
 #endif
