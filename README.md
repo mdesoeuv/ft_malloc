@@ -37,6 +37,21 @@ The goal is to understand how memory allocation works at a lower level and to be
 
 - The memory given by our malloc must be aligned (on a multiple of the largest component) -> addresses must be a multiple of the requested size (1, 2, 4 or 8 bytes)
 
+### Maximum Overhead
+
+```
+>>> 272 * 4096
+1114112
+>>> 1024 * 1024
+1048576
+>>> 1114112 - 1048576
+65536
+>>> 65536 / 1024
+64.0
+```
+
+- 272 pages of 4096 bytes = 1114112 bytes authorized for 1024 * 1024 bytes of mallocs  
+- Each pre allocated zone must be a multiple a page size (4096 bytes) and contain at least 100 allocations
 
 ## Description
 
@@ -62,6 +77,13 @@ The simplified chunk-allocation strategy for small chunks is this:
 3) Otherwise, the heap manager will ask the kernel to add new memory to the end of the heap, and then allocates a new chunk from this newly allocated space.
 4) If all these strategies fail, the allocation can’t be serviced, and malloc returns NULL.
 
+### Free Strategy
+
+1) If the chunk has the M bit set in the metadata, the allocation was allocated off-heap and should be munmaped.
+2) Otherwise, if the chunk before this one is free, the chunk is merged backwards to create a bigger free chunk.
+3) Similarly, if the chunk after this one is free, the chunk is merged forwards to create a bigger free chunk.
+4) If this potentially-larger chunk borders the “top” of the heap, the whole chunk is absorbed into the end of the heap, rather than stored in a “bin”.
+5) Otherwise, the chunk is marked as free and placed in an appropriate bin.
 
 
 ## Bins
@@ -117,7 +139,7 @@ The log level is set to `DEBUG` if the environment variable `FT_MALLOC_LOG_LEVEL
 - **Chunk**: A small range of memory that can be allocated (owned by the application), freed (owned by glibc), or combined with adjacent chunks into larger ranges. Note that a chunk is a wrapper around the block of memory that is given to the application. Each chunk exists in one heap and belongs to one arena.
 - **Memory**: A portion of the application's address space which is typically backed by RAM or swap.
 
-- **Alignment**: The address of an N-bytes value must be divisible by N.
+- **Alignment**: The address of an N-bytes value must be divisible by N. For a structure it must be divisible by the largest component of the structure.
 
 - minimum size of a chunk is `4*sizeof(void*)`
 
