@@ -29,6 +29,10 @@ void *malloc(size_t size) {
         return (NULL);
     }
 
+    size = size + sizeof(block_header);
+    int page_size = getpagesize();
+    int page_count = get_page_count(size, page_size);
+    size = page_count * page_size;
     void* ptr = mmap(
         NULL,
         size,
@@ -38,18 +42,16 @@ void *malloc(size_t size) {
         0
     );
 
-    int page_size = getpagesize();
-    ft_log("Page size: %d bytes\n", page_size);
-
     if (ptr == MAP_FAILED) {
         ft_log("Error while allocating memory\n");
         return (NULL);
     }
     block_header* header = (block_header *)ptr;
-    header->size = size + sizeof(block_header);
+    header->size = size;
     header->allocated = 1;
 
     ft_log("Allocated block size: %d\n", header->size);
+    ft_log("Requested page count: %d\n", page_count);
     ft_log("Header address: %p\n", header);
     ft_log("Payload address: %p\n", (char *)header + sizeof(block_header));
     
@@ -90,7 +92,12 @@ void *realloc(void *ptr, size_t size) {
 
     size_t old_size = BLOCK_SIZE(ptr);
     ft_log("Old size: %d\n", old_size);
-
+    size = size + sizeof(block_header);
+    int page_size = getpagesize();
+    int page_count = get_page_count(size, page_size);
+    ft_log("Requested size: %d\n", size);
+    ft_log("Requested page count: %d\n", page_count);
+    size = page_count * page_size;
     void* new_ptr = mmap(
         NULL,
         size,
@@ -103,13 +110,12 @@ void *realloc(void *ptr, size_t size) {
         ft_log("Error while reallocating memory\n");
         return (NULL);
     }
-
     block_header* new_header = (block_header*)new_ptr;
-    new_header->size = size + sizeof(block_header);
+    new_header->size = size;
     new_header->allocated = 1;
 
     size_t min_size = old_size < size ? old_size : size;
-    ft_memcpy(BLOCK_PAYLOAD(new_ptr), ptr, min_size);
+    ft_memcpy(BLOCK_PAYLOAD(new_ptr), ptr, min_size - sizeof(block_header));
     free(ptr);
     push_chunk_to_heap(&g_heap, new_header);
     return BLOCK_PAYLOAD(new_ptr);
@@ -209,4 +215,12 @@ void remove_chunk_from_heap(heap_info* heap, block_header* chunk) {
     }
     ft_log("remove_chunk_from_heap: Chunk not found\n");
     return;
+}
+
+int get_page_count(size_t size, int page_size) {
+    int page_count = size / page_size;
+    if (size % page_size) {
+        page_count++;
+    }
+    return page_count;
 }
