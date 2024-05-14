@@ -67,13 +67,13 @@ void free(void *ptr) {
 
     ft_log("Size: %d\n", size);
     BLOCK_ALLOCATED(ptr) = 0;
+    remove_chunk_from_heap(&g_heap, HEADER_ADDR(ptr));
     int res = munmap(HEADER_ADDR(ptr), size);
     if (res == -1) {
         ft_log("Error while freeing memory\n");
     }
     ft_log("Memory freed\n");
 
-    // TODO: remove block from heap_info
 }
 
 void *realloc(void *ptr, size_t size) {
@@ -111,7 +111,7 @@ void *realloc(void *ptr, size_t size) {
     size_t min_size = old_size < size ? old_size : size;
     ft_memcpy(BLOCK_PAYLOAD(new_ptr), ptr, min_size);
     free(ptr);
-
+    push_chunk_to_heap(&g_heap, new_header);
     return BLOCK_PAYLOAD(new_ptr);
 }
 
@@ -177,5 +177,33 @@ void push_chunk_to_heap(heap_info* heap, block_header* chunk) {
     }
     current->next = (heap_info*)chunk;
     heap->size += chunk->size;
+    return;
+}
+
+void remove_chunk_from_heap(heap_info* heap, block_header* chunk) {
+    if (!heap || !chunk) {
+        ft_log("remove_chunk_from_heap: Invalid arguments\n");
+        return;
+    }
+    if (!heap->start) {
+        ft_log("remove_chunk_from_heap: Heap is empty\n");
+        return;
+    }
+    heap_info* current = heap->start;
+    heap_info* prev = NULL;
+    while (current) {
+        if ((block_header*)current == chunk) {
+            if (prev) {
+                prev->next = current->next;
+            } else {
+                heap->start = current->next;
+            }
+            heap->size -= current->size;
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
+    ft_log("remove_chunk_from_heap: Chunk not found\n");
     return;
 }

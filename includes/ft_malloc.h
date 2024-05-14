@@ -92,11 +92,6 @@ typedef struct heap_info_t {
 } heap_info;
 
 void push_chunk_to_heap(heap_info* heap, block_header* chunk);
-
-// static heap_info g_heap = {
-//     .start = NULL,
-//     .next = NULL,
-//     .size = 0
-// };
+void remove_chunk_from_heap(heap_info* heap, block_header* chunk);
 
 #endif
