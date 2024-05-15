@@ -7,7 +7,7 @@ endif
 CC := gcc
 CFLAGS := -Wall -Wextra -fPIC -pedantic
 OPTIMIZATION_FLAGS := -Ofast -march=native -ffast-math
-DEBUG_FLAGS := #-fsanitize=address -g3
+DEBUG_FLAGS := -g3 # -fsanitize=address 
 
 # Source files
 SRC_DIR := src
@@ -41,10 +41,15 @@ FT_PRINTF := $(FT_PRINTF_DIR)/libftprintf.a
 # Target
 TARGET := libft_malloc_$(HOSTTYPE).so
 
-all: libft libftprintf $(TARGET) test
+.PHONY: all libft clean fclean re
 
-test: $(OBJS_TEST_FILES) $(TARGET) $(LIB) $(FT_PRINTF)
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $(TEST_DIR)/test_exec -L $(LIB_DIR) -l ft -L . -l ft_malloc_$(HOSTTYPE) -L $(FT_PRINTF_DIR) -l ftprintf
+all: libft libftprintf $(TARGET) $(TEST_DIR)/test_exec
+
+test: $(TEST_DIR)/test_exec
+	$(TEST_DIR)/test_exec
+
+$(TEST_DIR)/test_exec: $(OBJS_TEST_FILES) $(LIB) $(FT_PRINTF)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $@ -L $(LIB_DIR) -l ft -L $(FT_PRINTF_DIR) -l ftprintf
 
 $(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(LIB) $(FT_PRINTF)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET) -L $(LIB_DIR) -l ft -L $(FT_PRINTF_DIR) -l ftprintf
@@ -61,7 +66,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) Makefile | $(OBJ_DIR)
 $(TEST_OBJ_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) Makefile | $(TEST_OBJ_DIR)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
 
-$(OBJ_DIR) $(TEST_OBJ_DIR):
+$(TEST_OBJ_DIR):
+	mkdir -p $@
+
+$(OBJ_DIR):
 	mkdir -p $@
 
 clean:
@@ -74,4 +82,3 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all test libft clean fclean re
