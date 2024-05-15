@@ -6,7 +6,7 @@
 #    By: mdesoeuv <mdesoeuv@student.42lyon.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/11/30 10:25:46 by mdesoeuv          #+#    #+#              #
-#    Updated: 2022/01/05 11:51:36 by mdesoeuv         ###   ########lyon.fr    #
+#    Updated: 2024/05/15 18:23:16 by mdesoeuv         ###   ########lyon.fr    #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ SRCS=	ft_printf.c \
 
 OBJS= $(SRCS:.c=.o)
 
-CC= gcc -Wall -Werror -Wextra
+CC= gcc -Wall -Werror -Wextra -fPIC
 
 NAME= libftprintf.a
 
@@ -25,7 +25,7 @@ all: $(NAME)
 $(NAME):	$(OBJS)
 			ar rc $(NAME) $(OBJS)
 
-%.o:	%.c ft_printf.h
+%.o:	%.c ft_printf.h Makefile
 		$(CC) -c $< -o $@
 
 clean:
