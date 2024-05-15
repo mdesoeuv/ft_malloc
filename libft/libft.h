@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vchevill <vchevill@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: mdesoeuv <mdesoeuv@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/05 11:37:18 by mdesoeuv          #+#    #+#             */
-/*   Updated: 2022/02/14 11:03:18 by vchevill         ###   ########lyon.fr   */
+/*   Updated: 2024/05/15 14:38:19 by mdesoeuv         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ char			*ft_strndup(const char *s1, size_t len);
 int				ft_min(int a, int b);
 int				ft_max(int a, int b);
 int				ft_abs(int n);
-int				ft_if(int condition, int true, int false);
+int				ft_if(int condition, int t, int f);
 char			**free_return_null(char **tab, int j);
 char			**malloc_return(char ***tab, char const *s, char c);
 char			*ft_split_strdup(char const *s, int i, int len);
