@@ -6,10 +6,11 @@
 int LOG_LEVEL = 0;
 static mstate g_state = {NULL, NULL, NULL};
 
-void initialize_log_level() __attribute__((constructor));
+// void initialize_log_level() __attribute__((constructor));
 
 void initialize_log_level() {
-    char* log = getenv("FT_MALLOC_LOG_LEVEL");
+    // char* log = getenv("FT_MALLOC_LOG_LEVEL");
+    char *log = "1";
     if (!log) {
         ft_printf("LOG LEVEL SET TO DEFAULT\n");
         return ;

@@ -8,7 +8,6 @@
 #include <pthread.h> // pthread_mutex_t
 #include <stdlib.h> // getenv
 #include <stdbool.h> // bool
-#include <assert.h> // assert
 
 void    free(void *ptr);
 void    *malloc(size_t size);
@@ -16,6 +15,7 @@ void    *malloc(size_t size);
 void    show_alloc_mem();
 void    show_block_status(void *ptr);
 
+extern int LOG_LEVEL;
 
 #define ft_log(format, ...) \
     do { \
@@ -51,7 +51,10 @@ inline int to_next_multiple(size_t value, size_t alignment) {
 }
 
 inline void is_aligned(void* ptr) {
-    assert(((size_t)ptr & (ALLOCATION_ALIGNMENT - 1)) == 0);
+    if (((size_t)ptr & (ALLOCATION_ALIGNMENT - 1)) != 0) {
+        ft_log("Pointer is not aligned\n");        
+        exit(1);
+    }
 }
 
 inline size_t chunk_header_get_size(chunk_header *self) {
@@ -60,7 +63,10 @@ inline size_t chunk_header_get_size(chunk_header *self) {
 
 inline void chunk_header_set_size(chunk_header *self, size_t size) {
     // Check size is a multiple of 8
-    assert((size >> 3 << 3) == size);
+    if ((size >> 3 << 3) != size) {
+        ft_log("Size is not a multiple of 8\n");
+        exit(1);
+    }
     self->word_count = size >> 3;
 }
 

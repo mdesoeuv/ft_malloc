@@ -1,4 +1,4 @@
-#include "../includes/ft_malloc.h"
+
 #include "../libft/libft.h"
 #include "../ft_printf/ft_printf.h"
 
@@ -7,8 +7,6 @@ extern int LOG_LEVEL;
 
 int main(void)
 {
-	ft_printf("LOG_LEVEL: %d\n", LOG_LEVEL);
-	ft_log("TEST LOG\n");
 	void* ptr = malloc(12 * sizeof(char));
 	if (!ptr) {
 		ft_putstr("Malloc failed\n");
