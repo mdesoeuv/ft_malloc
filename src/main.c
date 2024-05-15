@@ -3,7 +3,7 @@
 #include "../includes/ft_malloc.h"
 
 // TODO: Use an enum
-int LOG_LEVEL = 0;
+int LOG_LEVEL = 1;
 static mstate g_state = {NULL, NULL, NULL};
 
 // void initialize_log_level() __attribute__((constructor));
@@ -128,8 +128,7 @@ void free(void *ptr) {
 //     int page_size = getpagesize();
 //     int page_count = get_rounded_page_size(size, page_size);
 //     ft_log("Requested aligned size: %d\n", size);
-//     ft_log("Requested page count: %d\n", page_count);
-//     size = page_count * page_size;
+//     ft_log("Requested page count: %d\n", page_count);*cursor && 
 //     void* new_ptr = mmap(
 //         NULL,
 //         size,
@@ -180,36 +179,21 @@ void show_block_status(void *ptr) {
     ft_log("--------------------\n");
 }
 
-void push_page_to_state(page** state, page* new) {
-    if (*state == NULL) {
-        ft_log("push_page_to_state: initializing empty state\n");
-        *state = new;
-        return;
-    }
-    page* current = *state;
-    while (current->next) {
-        current = current->next;
-    }
-    current->next = new;
-    return;
+void page_insert(page** self, page* new) {
+    new->next = *self;
+    *self = new;
 }
 
-void remove_page_from_state(page** state, page* target) {
-
-    if (state == NULL) {
-        ft_log("remove_page_from_state: empty state\n");
-        return;
+/* Target must be in the list otherwise undefined behavior */
+void page_remove(page** self, page* target) {
+    page** cursor = self;
+    while (*cursor != target) {
+        *cursor  = &(*cursor)->next;
     }
-    page* current = *state;
-    while (current && current->next != target) {
-        current = current->next;
+    *cursor = (*cursor)->next;
+    if(!munmap(target, target->size)) {
+        ft_log("Error while unmaping page\n");
     }
-    if (current == NULL) {
-        ft_log("remove_page_from_state: chunk not found\n");
-        return;
-    }
-    current->next = target->next;
-    return;
 }
 
 // TODO: use the same int type
