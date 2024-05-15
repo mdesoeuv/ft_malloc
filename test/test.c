@@ -1,13 +1,23 @@
 
 #include "../libft/libft.h"
 #include "../ft_printf/ft_printf.h"
+#include "../includes/extended.h"
 
 
 extern int LOG_LEVEL;
 
+void    show_alloc_mem() {
+	ft_putstr("show_alloc_mem mock\n");
+}
+
+void    show_block_status(void *ptr) {
+	(void)ptr;
+	ft_putstr("show_block_status mock\n");
+}
+
 int main(void)
 {
-	void* ptr = malloc(12 * sizeof(char));
+	void* ptr = malloc(13 * sizeof(char));
 	if (!ptr) {
 		ft_putstr("Malloc failed\n");
 		return 0;

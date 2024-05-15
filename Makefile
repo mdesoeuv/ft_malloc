@@ -5,9 +5,9 @@ endif
 
 # Compiler and flags
 CC := gcc
-CFLAGS := -Wall -Wextra -fPIC -pedantic
-OPTIMIZATION_FLAGS := -Ofast -march=native -ffast-math
-DEBUG_FLAGS := -g3 # -fsanitize=address 
+CFLAGS := -Wall -Wextra -fPIC # -pedantic
+OPTIMIZATION_FLAGS := # -Ofast -march=native -ffast-math
+DEBUG_FLAGS := # -g3 # -fsanitize=address 
 
 # Source files
 SRC_DIR := src
@@ -28,7 +28,8 @@ OBJS_TEST := $(TEST:.c=.o)
 OBJS_TEST_FILES := $(addprefix $(TEST_OBJ_DIR)/, $(OBJS_TEST))
 
 # Header files
-HEADERS := includes/ft_malloc.h
+HEADERS :=	includes/ft_malloc.h \
+			includes/extended.h
 
 # Library
 LIB_DIR := libft

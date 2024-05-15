@@ -3,10 +3,10 @@
 #include "../includes/ft_malloc.h"
 
 // TODO: Use an enum
-int LOG_LEVEL = 1;
+int LOG_LEVEL = 0;
 static mstate g_state = {NULL, NULL, NULL};
 
-// void initialize_log_level() __attribute__((constructor));
+void initialize_log_level() __attribute__((constructor));
 
 void initialize_log_level() {
     // char* log = getenv("FT_MALLOC_LOG_LEVEL");
@@ -33,7 +33,7 @@ void *malloc(size_t size) {
     // TODO: ensure that allocation is enough for linked list of freed chunks
 
     // Compute page size
-    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
+    int chunk_size = to_next_multiple_truc_a(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
     int page_size = get_rounded_page_size(chunk_size);
     ft_log("Computed page size: %d\n", page_size);
@@ -56,7 +56,7 @@ void *malloc(size_t size) {
 
     // Write page metadata
     page* new_page = (page *)ptr;
-    new_page->size = size;
+    new_page->size = page_size;
     new_page->next = NULL;
 
     ft_log("page metadata: \n");
