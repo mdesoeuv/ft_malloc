@@ -51,7 +51,7 @@ test: $(TEST_DIR)/test_exec
 $(TEST_DIR)/test_exec: $(OBJS_TEST_FILES) $(LIB) $(FT_PRINTF)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $@ -L $(LIB_DIR) -l ft -L $(FT_PRINTF_DIR) -l ftprintf
 
-$(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(LIB) $(FT_PRINTF)
+$(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(LIB) $(FT_PRINTF) $(HEADERS)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET) -L $(LIB_DIR) -l ft -L $(FT_PRINTF_DIR) -l ftprintf
 
 libft:
