@@ -46,7 +46,7 @@ inline void* align(void* ptr, size_t alignment) {
     return (void*)(((size_t)ptr + alignment - 1) & ~(alignment - 1));
 }
 
-inline int to_next_multiple(size_t value, size_t alignment) {
+inline int to_next_multiple_truc_a(size_t value, size_t alignment) {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
