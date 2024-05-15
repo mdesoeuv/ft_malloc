@@ -6,13 +6,13 @@
 #    By: mdesoeuv <mdesoeuv@student.42lyon.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/11/05 15:49:39 by mdesoeuv          #+#    #+#              #
-#    Updated: 2022/03/01 10:00:02 by mdesoeuv         ###   ########lyon.fr    #
+#    Updated: 2024/05/15 18:11:15 by mdesoeuv         ###   ########lyon.fr    #
 #                                                                              #
 # **************************************************************************** #
 
 CC:= gcc
 
-CFLAGS:= -Wall -Wextra -Werror
+CFLAGS:= -Wall -Wextra -Werror -fPIC
 
 NAME:= libft.a
 

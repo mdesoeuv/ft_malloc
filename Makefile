@@ -11,7 +11,8 @@ DEBUG_FLAGS := # -g3 # -fsanitize=address
 
 # Source files
 SRC_DIR := src
-SRC := main.c
+SRC :=	main.c \
+		utils.c
 SRC_FILES := $(addprefix $(SRC_DIR)/, $(SRC))
 
 # Object files
