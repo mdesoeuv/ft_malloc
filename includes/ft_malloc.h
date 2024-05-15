@@ -130,8 +130,8 @@ typedef struct s_mstate {
     page*  large;
 } mstate;
 
-void    push_page_to_state(page** state, page* new);
-void    remove_page_from_state(page** state, page* target);
+void    page_insert(page** self, page* new);
+void    page_remove(page** self, page* target);
 int     get_rounded_page_size(size_t size);
 
 

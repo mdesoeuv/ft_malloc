@@ -67,7 +67,7 @@ void *malloc(size_t size) {
 
     // Write chunk metadata
     chunk_header* chunk = page_get_first_chunk(new_page);
-    chunk_header_set_size(chunk, size);
+    chunk_header_set_size(chunk, chunk_size);
     chunk_header_set_mmapped(chunk, true);
 
     ft_log("Chunk metadata: \n");
@@ -81,7 +81,7 @@ void *malloc(size_t size) {
     ft_log("Header address: %p\n", chunk);
     ft_log("Payload address: %p\n", (char *)chunk + sizeof(chunk_header));
     
-    push_page_to_state(&(g_state.large), new_page);
+    page_insert(&g_state.large, new_page);
     
     return chunk_header_get_payload(chunk);
 }
@@ -101,11 +101,7 @@ void free(void *ptr) {
     int size = chunk_header_get_size(header);
     ft_log("Chunk Size: %d\n", size);
     page* start = page_get_start(header);
-    remove_page_from_state(&(g_state.large), start);
-    int res = munmap(start, start->size);
-    if (res == -1) {
-        ft_log("Error while freeing memory\n");
-    }
+    page_remove(&g_state.large, start);
     ft_log("Memory freed\n");
 
 }
@@ -131,7 +127,8 @@ void free(void *ptr) {
 //     ft_log("Requested page count: %d\n", page_count);*cursor && 
 //     void* new_ptr = mmap(
 //         NULL,
-//         size,
+//         size,    
+
 //         PROT_READ | PROT_WRITE,
 //         MAP_PRIVATE | MAP_ANONYMOUS,
 //         -1,
@@ -188,7 +185,7 @@ void page_insert(page** self, page* new) {
 void page_remove(page** self, page* target) {
     page** cursor = self;
     while (*cursor != target) {
-        *cursor  = &(*cursor)->next;
+        cursor = &(*cursor)->next;
     }
     *cursor = (*cursor)->next;
     if(!munmap(target, target->size)) {
