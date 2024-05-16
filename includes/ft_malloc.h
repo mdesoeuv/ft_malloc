@@ -27,6 +27,14 @@ extern int LOG_LEVEL;
 
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
+#define SMALL_THRESHOLD      1008
+#define LARGE_THRESHOLD      1024 * 1024
+
+typedef enum e_allocation_type {
+    TINY,
+    SMALL,
+    LARGE
+} allocation_type;
 
 // TODO: Document structure and glossary
 /*
@@ -37,7 +45,7 @@ extern int LOG_LEVEL;
 typedef struct s_chunk_header {
     // TODO: document
     size_t                  prev_size;
-    size_t                  word_count : sizeof(size_t) - 3;
+    size_t                  word_count : 8 * sizeof(size_t) - 3;
     bool                     arena : 1;
     bool                     mmapped : 1;
     bool                     prev_inuse : 1;
@@ -73,26 +81,29 @@ typedef void* page_ptr;
 
 typedef struct s_page {
     struct s_page*  next;
-    chunk_header*   first_chunk;
+    chunk_header*   first_free;
     size_t          size;
 } page;
 
 
 void* page_get_first_chunk(page *self);
 void* page_get_end(page *self);
-page* get_new_page(size_t page_size);
+page* page_get_new(size_t page_size, allocation_type type);
 page* page_get_start(chunk_header* first_chunk);
 
 typedef struct s_mstate {
     page*  tiny;
     page*  small;
     page*  large;
+    chunk_header* tiny_bin;
+    chunk_header* small_bin;
 } mstate;
 
 void        page_insert(page** self, page* new);
 void        page_remove(page** self, page* target);
 size_t      page_get_rounded_size(size_t size);
 
+chunk_header* large_alloc(size_t chunk_size);
 
 // typedef struct malloc_header {
 //     size_t prev_size;

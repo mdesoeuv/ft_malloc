@@ -27,7 +27,7 @@ void chunk_header_set_size(chunk_header *self, size_t size) {
         ft_log("Size is not a multiple of 8\n");
         exit(1);
     }
-    self->word_count = size >> 3;
+    self->word_count = size / 8;
 }
 
 bool chunk_header_get_arena(chunk_header *self) {
@@ -57,6 +57,10 @@ void chunk_header_set_prev_inuse(chunk_header *self, bool prev_inuse) {
 void* chunk_header_get_payload(chunk_header *self) {
     void* header_end = (void*)(self + 1);
     return align(header_end, ALLOCATION_ALIGNMENT);
+}
+
+void* chunk_header_get_next(chunk_header *self) {
+    return (void*)((size_t)self + chunk_header_get_size(self));
 }
 
 void* payload_to_header(void* payload) {

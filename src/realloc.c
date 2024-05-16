@@ -23,22 +23,14 @@ void *realloc(void *ptr, size_t size) {
     ft_log("Computed chunk size: %d\n", chunk_size);
     size_t page_size = page_get_rounded_size(chunk_size);
 
-    page* new_page = get_new_page(page_size);
+    page* new_page = page_get_new(page_size, LARGE);
 
-    // Write chunk metadata
-    chunk_header* chunk = page_get_first_chunk(new_page);
-    chunk_header_set_size(chunk, chunk_size);
-    chunk_header_set_mmapped(chunk, true);
-    // TODO: set prev_inuse to true for the first chunk
-    chunk_header_set_prev_inuse(chunk, true);
+    chunk_header* chunk = large_alloc(chunk_size);
 
     ft_log("Chunk metadata: \n");
     ft_log("Size: %d\n", chunk_header_get_size(chunk));
     ft_log("MMapped: %d\n", chunk_header_get_mmapped(chunk));
     ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(chunk));
-
-    // TODO: set first chunk pointer only when new page is allocated
-    new_page->first_chunk = chunk;
 
     ft_log("Allocated block size: %d\n", chunk_header_get_size(chunk));
     ft_log("Header address: %p\n", chunk);
