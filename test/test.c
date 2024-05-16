@@ -2,12 +2,17 @@
 #include "../libft/libft.h"
 #include "../ft_printf/ft_printf.h"
 #include "../extra/extra.h"
+#include <assert.h>
 
-extern int LOG_LEVEL;
+void test_free_null() {
+	ft_putstr("Freeing NULL\n");
+	free(NULL);
+}
 
 
 int main(void)
 {
+	test_free_null();
 	void* ptr = malloc(12 * sizeof(char));
 	if (!ptr) {
 		ft_putstr("Malloc failed\n");
@@ -49,6 +54,7 @@ int main(void)
 	show_alloc_mem();
 	free(ptr4);
 	show_alloc_mem();
+
 	// Realloc tests
 	ft_putstr("Realloc tests\n");
 	void* ptr5 = malloc(6 * sizeof(char));

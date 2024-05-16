@@ -63,9 +63,9 @@ void *malloc(size_t size) {
     // TODO: ensure that allocation is enough for linked list of freed chunks
 
     // Compute page size
-    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
+    size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
-    int page_size = get_rounded_page_size(chunk_size);
+    size_t page_size = get_rounded_page_size(chunk_size);
 
     // Request page from kernel
     page* new_page = get_new_page(page_size);
@@ -132,9 +132,9 @@ void *realloc(void *ptr, size_t size) {
     ft_log("New size: %d\n", size);
 
     // Compute the new size
-    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
+    size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
-    int page_size = get_rounded_page_size(chunk_size);
+    size_t page_size = get_rounded_page_size(chunk_size);
 
     page* new_page = get_new_page(page_size);
 
