@@ -5,7 +5,7 @@ void* align(void* ptr, size_t alignment) {
 }
 
 
-size_t to_next_multiple_truc_a(size_t value, size_t alignment) {
+size_t to_next_multiple(size_t value, size_t alignment) {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
