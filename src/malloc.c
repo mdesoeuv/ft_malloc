@@ -152,6 +152,7 @@ void free(void *ptr) {
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
+    ft_log("LARGE\n");
     page* current = g_state.large;
     int total_size = 0;
     while (current) {
@@ -159,7 +160,7 @@ void show_alloc_mem() {
         total_size += current->size;
         current = current->next;
     }
-    ft_log("LARGE Size: %d\n", g_state.large->size);
+    ft_log("LARGE Size: %d\n", total_size);
     ft_log("-- End of show alloc mem! --\n");
 }
 
