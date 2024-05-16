@@ -52,10 +52,7 @@ page* page_get_new(size_t page_size, allocation_type type) {
     chunk_header_set_mmapped(first, true);
     chunk_header_set_prev_inuse(first, true);
 
-    ft_log("page metadata: \n");
-    ft_log("Page Size: %d\n", new_page->size);
-    ft_log("Next Page: %p\n", new_page->next);
-
+    page_print_metadata(new_page);
     switch(type) {
         case TINY:
             // TODO: page_insert(&g_state.tiny, new_page);
@@ -73,8 +70,9 @@ page* page_get_new(size_t page_size, allocation_type type) {
 }
 
 void *malloc(size_t size) {
+
     ft_log("Malloc! Requested size: %d\n", size);
-    // TODO: return valid unique pointer
+
     if (size == 0) {
         ft_log("Size is 0: returning NULL\n");
         return (NULL);
@@ -100,11 +98,9 @@ void *malloc(size_t size) {
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
 
-    // TODO: Determine type of alloation
-
-
     chunk_header* chunk;
 
+    // Determine allocation type
     switch(type) {
         case TINY:
             ft_log("Tiny Allocation\n");
@@ -120,9 +116,7 @@ void *malloc(size_t size) {
             break;
     }
 
-    ft_log("Allocated block size: %d\n", chunk_header_get_size(chunk));
-    ft_log("Header address: %p\n", chunk);
-    ft_log("Payload address: %p\n", (char *)chunk + sizeof(chunk_header));
+    chunk_header_print_metadata(chunk);
     
     return chunk_header_get_payload(chunk);
 }
@@ -147,6 +141,7 @@ void page_remove(page** self, page* target) {
 
 
 chunk_header* large_alloc(size_t chunk_size) {
+    
     size_t page_size = page_get_rounded_size(chunk_size);
 
     // Request page from kernel
@@ -154,10 +149,7 @@ chunk_header* large_alloc(size_t chunk_size) {
 
     chunk_header* chunk = new_page->first_free;
 
-    ft_log("Chunk metadata: \n");
-    ft_log("Size: %d\n", chunk_header_get_size(chunk));
-    ft_log("MMapped: %d\n", chunk_header_get_mmapped(chunk));
-    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(chunk));
+    chunk_header_print_metadata(chunk);
 
     new_page->first_free = chunk_header_get_next(chunk);
 

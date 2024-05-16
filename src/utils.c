@@ -63,6 +63,15 @@ void* chunk_header_get_next(chunk_header *self) {
     return (void*)((size_t)self + chunk_header_get_size(self));
 }
 
+void chunk_header_print_metadata(chunk_header *self) {
+    ft_log("Chunk metadata: \n");
+    ft_log("Address: %p\n", self);
+    ft_log("Size: %d\n", chunk_header_get_size(self));
+    ft_log("Arena: %d\n", chunk_header_get_arena(self));
+    ft_log("MMapped: %d\n", chunk_header_get_mmapped(self));
+    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
+}
+
 void* payload_to_header(void* payload) {
     return (chunk_header*)payload - 1;
 }
@@ -90,6 +99,14 @@ size_t page_get_rounded_size(size_t size) {
     return page_count * page_size;
 }
 
+void page_print_metadata(page *self) {
+    ft_log("-- Page metadata: --\n");
+    ft_log("Address: %p\n", self);
+    ft_log("Next: %p\n", self->next);
+    ft_log("Size: %d\n", self->size);
+    ft_log("First free chunk: %p\n", self->first_free);
+    ft_log("-- End of page metadata --\n");
+}
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
@@ -105,7 +122,7 @@ void show_alloc_mem() {
     ft_log("-- End of show alloc mem! --\n");
 }
 
-void show_block_status(void *ptr) {
+void show_chunk_status(void *ptr) {
 
     ft_log("--------------------\n");
     ft_log("Memory block status: \n");
