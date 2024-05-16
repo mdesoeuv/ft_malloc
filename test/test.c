@@ -49,5 +49,20 @@ int main(void)
 	show_alloc_mem();
 	free(ptr4);
 	show_alloc_mem();
+	// Realloc tests
+	ft_putstr("Realloc tests\n");
+	void* ptr5 = malloc(6 * sizeof(char));
+	ft_memcpy(ptr5, "Hello", 5);
+	ft_printf("ptr5: %s\n", ptr5);
+	void* ptr6 = realloc(ptr5, 10 * sizeof(char));
+	ft_printf("ptr6: %s\n", ptr6);
+	show_alloc_mem();
+	void* ptr7 = realloc(ptr6, 2 * sizeof(char));
+	write(1, "ptr7: ", 6);
+	write(1, ptr7, 2);
+	write(1, "\n", 1);
+	free(ptr7);
+	show_alloc_mem();
+
 	return 0;
 }
