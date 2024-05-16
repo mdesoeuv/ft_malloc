@@ -36,7 +36,6 @@ void *malloc(size_t size) {
     int chunk_size = to_next_multiple_truc_a(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
     int page_size = get_rounded_page_size(chunk_size);
-    ft_log("Computed page size: %d\n", page_size);
 
     // Request page from kernel
     void* ptr = mmap(
@@ -52,7 +51,6 @@ void *malloc(size_t size) {
         ft_log("Error while allocating memory\n");
         return (NULL);
     }
-    ft_log("Allocated page size: %d\n", page_size);
 
     // Write page metadata
     page* new_page = (page *)ptr;
@@ -60,8 +58,8 @@ void *malloc(size_t size) {
     new_page->next = NULL;
 
     ft_log("page metadata: \n");
-    ft_log("Size: %d\n", new_page->size);
-    ft_log("Next: %p\n", new_page->next);
+    ft_log("Page Size: %d\n", new_page->size);
+    ft_log("Next Page: %p\n", new_page->next);
 
 
 
@@ -69,10 +67,13 @@ void *malloc(size_t size) {
     chunk_header* chunk = page_get_first_chunk(new_page);
     chunk_header_set_size(chunk, chunk_size);
     chunk_header_set_mmapped(chunk, true);
+    // TODO: set prev_inuse to true for the first chunk
+    chunk_header_set_prev_inuse(chunk, true);
 
     ft_log("Chunk metadata: \n");
     ft_log("Size: %d\n", chunk_header_get_size(chunk));
     ft_log("MMapped: %d\n", chunk_header_get_mmapped(chunk));
+    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(chunk));
 
 
     new_page->first_chunk = chunk;
