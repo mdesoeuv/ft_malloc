@@ -72,5 +72,5 @@ void* page_get_end(page *self) {
 }
 
 page* page_get_start(chunk_header* first_chunk) {
-    return (page*)((size_t)first_chunk % getpagesize());
+    return (page*)((size_t)(first_chunk) - (size_t)first_chunk % getpagesize());
 }
