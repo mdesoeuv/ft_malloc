@@ -72,6 +72,18 @@ void chunk_header_print_metadata(chunk_header *self) {
     ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
 }
 
+allocation_type chunk_get_allocation_type(size_t size) {
+
+    // TODO: set type to TINY if size < SMALL_THRESHOLD 
+    if (size < SMALL_THRESHOLD) {
+        return SMALL;
+    }
+    if (size < LARGE_THRESHOLD) {
+        return SMALL;
+    }
+    return LARGE;
+}
+
 void* payload_to_header(void* payload) {
     return (chunk_header*)payload - 1;
 }
@@ -110,15 +122,33 @@ void page_print_metadata(page *self) {
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
-    ft_log("LARGE\n");
-    page* current = g_state.large;
-    int total_size = 0;
+    ft_log("TINY\n");
+    page* current = g_state.tiny;
+    size_t total_size = 0;
     while (current) {
         ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
         total_size += current->size;
         current = current->next;
     }
-    ft_log("LARGE Size: %d\n", total_size);
+    ft_log("TINY Size: %d\n\n", total_size);
+    ft_log("SMALL\n");
+    current = g_state.small;
+    total_size = 0;
+    while (current) {
+        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        total_size += current->size;
+        current = current->next;
+    }
+    ft_log("SMALL Size: %d\n\n", total_size);
+    ft_log("LARGE\n");
+    current = g_state.large;
+    total_size = 0;
+    while (current) {
+        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        total_size += current->size;
+        current = current->next;
+    }
+    ft_log("LARGE Size: %d\n\n", total_size);
     ft_log("-- End of show alloc mem! --\n");
 }
 

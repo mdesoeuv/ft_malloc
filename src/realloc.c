@@ -12,6 +12,8 @@ void *realloc(void *ptr, size_t size) {
         return (NULL);
     }
 
+    allocation_type type = chunk_get_allocation_type(size);
+
     // Retrieve the chunk metadata
     chunk_header* header = payload_to_header(ptr);
     size_t old_size = chunk_header_get_size(header);
@@ -21,20 +23,29 @@ void *realloc(void *ptr, size_t size) {
     // Compute the new size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
-    size_t page_size = page_get_rounded_size(chunk_size);
 
-    page* new_page = page_get_new(page_size, LARGE);
 
-    chunk_header* chunk = large_alloc(chunk_size);
 
-    ft_log("Chunk metadata: \n");
-    ft_log("Size: %d\n", chunk_header_get_size(chunk));
-    ft_log("MMapped: %d\n", chunk_header_get_mmapped(chunk));
-    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(chunk));
+    chunk_header* chunk;
+    
+    switch(type) {
+        // TODO: change to tiny_alloc
+        case TINY:
+            ft_log("Tiny Allocation\n");
+            chunk = small_alloc(chunk_size);
+            break;
+        case SMALL:
+            ft_log("Small Allocation\n");
+            chunk = small_alloc(chunk_size);
+            break;
+        case LARGE:
+        // TODO: change to large_alloc
+            ft_log("Large Allocation\n");
+            chunk = small_alloc(chunk_size);
+            break;
+    }
 
-    ft_log("Allocated block size: %d\n", chunk_header_get_size(chunk));
-    ft_log("Header address: %p\n", chunk);
-    ft_log("Payload address: %p\n", (char *)chunk + sizeof(chunk_header));
+    chunk_header_print_metadata(chunk);
 
     // Copy the data from the old block to the new block
     size_t min_size = old_size < chunk_size ? old_size : chunk_size;

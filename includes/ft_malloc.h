@@ -51,23 +51,32 @@ typedef struct s_chunk_header {
     bool                     prev_inuse : 1;
 } chunk_header;
 
+typedef struct s_free_chunk_header {
+    chunk_header            header;
+    struct s_free_chunk_header* next;
+    struct s_free_chunk_header* prev;
+} free_chunk_header;
+
+
 void*   align(void* ptr, size_t alignment);
 
 size_t  to_next_multiple(size_t value, size_t alignment);
 
 void    is_aligned(void* ptr);
 
-size_t  chunk_header_get_size(chunk_header *self);
-void    chunk_header_set_size(chunk_header *self, size_t size);
-bool    chunk_header_get_arena(chunk_header *self);
-void    chunk_header_set_arena(chunk_header *self, bool arena);
-bool    chunk_header_get_mmapped(chunk_header *self);
-void    chunk_header_set_mmapped(chunk_header *self, bool mmapped);
-bool    chunk_header_get_prev_inuse(chunk_header *self);
-void    chunk_header_set_prev_inuse(chunk_header *self, bool prev_inuse);
-void*   chunk_header_get_payload(chunk_header *self);
-void    chunk_header_print_metadata(chunk_header *self);
-void*   payload_to_header(void* payload);
+size_t          chunk_header_get_size(chunk_header *self);
+void            chunk_header_set_size(chunk_header *self, size_t size);
+bool            chunk_header_get_arena(chunk_header *self);
+void            chunk_header_set_arena(chunk_header *self, bool arena);
+bool            chunk_header_get_mmapped(chunk_header *self);
+void            chunk_header_set_mmapped(chunk_header *self, bool mmapped);
+bool            chunk_header_get_prev_inuse(chunk_header *self);
+void            chunk_header_set_prev_inuse(chunk_header *self, bool prev_inuse);
+void*           chunk_header_get_payload(chunk_header *self);
+void*           chunk_header_get_next(chunk_header *self);
+void            chunk_header_print_metadata(chunk_header *self);
+allocation_type chunk_get_allocation_type(size_t size);
+void*           payload_to_header(void* payload);
 
 typedef void* page_ptr;
 
@@ -88,8 +97,8 @@ typedef struct s_mstate {
     page*  tiny;
     page*  small;
     page*  large;
-    chunk_header* tiny_bin;
-    chunk_header* small_bin;
+    chunk_header* tiny_free;
+    chunk_header* small_free;
 } mstate;
 
 void        page_insert(page** self, page* new);
@@ -97,6 +106,7 @@ void        page_remove(page** self, page* target);
 size_t      page_get_rounded_size(size_t size);
 
 chunk_header* large_alloc(size_t chunk_size);
+chunk_header* small_alloc(size_t chunk_size);
 
 // typedef struct malloc_header {
 //     size_t prev_size;

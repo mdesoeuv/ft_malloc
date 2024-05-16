@@ -4,7 +4,7 @@
 
 // TODO: Use an enum
 int LOG_LEVEL = 0;
-mstate g_state = {NULL, NULL, NULL};
+mstate g_state = {NULL, NULL, NULL, NULL, NULL};
 
 
 void initialize_log_level() __attribute__((constructor));
@@ -78,19 +78,7 @@ void *malloc(size_t size) {
         return (NULL);
     }
 
-    allocation_type type;
-
-    if (size < SMALL_THRESHOLD) {
-        ft_log("Tiny Allocation\n");
-        type = TINY;
-    }
-    else if (size < LARGE_THRESHOLD) {
-        ft_log("Small Allocation\n");
-        type = SMALL;
-    } else {
-        ft_log("Large Allocation\n");
-        type = LARGE;
-    }
+    allocation_type type = chunk_get_allocation_type(size);
 
     // TODO: ensure that allocation is enough for linked list of freed chunks
 
@@ -104,15 +92,15 @@ void *malloc(size_t size) {
     switch(type) {
         case TINY:
             ft_log("Tiny Allocation\n");
-            chunk = large_alloc(chunk_size);
+            chunk = small_alloc(chunk_size);
             break;
         case SMALL:
             ft_log("Small Allocation\n");
-            chunk = large_alloc(chunk_size);
+            chunk = small_alloc(chunk_size);
             break;
         case LARGE:
             ft_log("Large Allocation\n");
-            chunk = large_alloc(chunk_size);
+            chunk = small_alloc(chunk_size);
             break;
     }
 
@@ -159,9 +147,33 @@ chunk_header* large_alloc(size_t chunk_size) {
 chunk_header* small_alloc(size_t chunk_size) {
     page* current = g_state.small;
 
-    if (!current || current->size < chunk_size) {
+    if (!current || !current->first_free) {
         ft_log("No small page available, requesting new page to Kernel\n");
         current = page_get_new(page_get_rounded_size(chunk_size), SMALL);
     }
-    chunk_header* chunk = page_get_first_chunk(current);
+    chunk_header* chunk = current->first_free;
+    if (chunk_header_get_size(chunk) < chunk_size) {
+        ft_log("Chunk size is too small, requesting new page to Kernel\n");
+        current = page_get_new(page_get_rounded_size(chunk_size), SMALL);
+        chunk = current->first_free;
+    }
+    chunk_header_set_size(chunk, chunk_size);
+    chunk_header_set_mmapped(chunk, false);
+    chunk_header_set_prev_inuse(chunk, true);
+    current->first_free = chunk_header_get_next(chunk);
+    ft_log("New first free chunk: %p\n", current->first_free);
+ 
+    // Compute the size until end of page
+    size_t remaining_size = (size_t)page_get_end(current) - (size_t)current->first_free;
+    ft_log("Remaining size until end of page: %d\n", remaining_size);
+
+    if ((size_t)current->first_free + sizeof(page) > (size_t)page_get_end(current)) {
+        ft_log("No more space in current page\n");
+        current->first_free = NULL;
+    }
+    else {
+        ft_log("Next first free chunk: %p\n", current->first_free);
+        chunk_header_set_prev_inuse(current->first_free, true);
+    }
+    return chunk;
 }
