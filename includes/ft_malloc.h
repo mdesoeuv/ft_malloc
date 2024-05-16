@@ -76,10 +76,10 @@ typedef struct s_page {
     size_t          size;
 } page;
 
+
 void* page_get_first_chunk(page *self);
-
 void* page_get_end(page *self);
-
+page* get_new_page(size_t page_size);
 page* page_get_start(chunk_header* first_chunk);
 
 typedef struct s_mstate {

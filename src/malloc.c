@@ -22,21 +22,7 @@ void initialize_log_level() {
     }
 }
 
-void *malloc(size_t size) {
-    ft_log("Malloc! Requested size: %d\n", size);
-    // TODO: return valid unique pointer
-    if (size == 0) {
-        ft_log("Size is 0: returning NULL\n");
-        return (NULL);
-    }
-
-    // TODO: ensure that allocation is enough for linked list of freed chunks
-
-    // Compute page size
-    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
-    ft_log("Computed chunk size: %d\n", chunk_size);
-    int page_size = get_rounded_page_size(chunk_size);
-
+page* get_new_page(size_t page_size) {
     // Request page from kernel
     void* ptr = mmap(
         NULL,
@@ -61,7 +47,28 @@ void *malloc(size_t size) {
     ft_log("Page Size: %d\n", new_page->size);
     ft_log("Next Page: %p\n", new_page->next);
 
+    page_insert(&g_state.large, new_page);
 
+    return new_page;
+}
+
+void *malloc(size_t size) {
+    ft_log("Malloc! Requested size: %d\n", size);
+    // TODO: return valid unique pointer
+    if (size == 0) {
+        ft_log("Size is 0: returning NULL\n");
+        return (NULL);
+    }
+
+    // TODO: ensure that allocation is enough for linked list of freed chunks
+
+    // Compute page size
+    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
+    ft_log("Computed chunk size: %d\n", chunk_size);
+    int page_size = get_rounded_page_size(chunk_size);
+
+    // Request page from kernel
+    page* new_page = get_new_page(page_size);
 
     // Write chunk metadata
     chunk_header* chunk = page_get_first_chunk(new_page);
@@ -75,14 +82,13 @@ void *malloc(size_t size) {
     ft_log("MMapped: %d\n", chunk_header_get_mmapped(chunk));
     ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(chunk));
 
-
+    // TODO: set first chunk pointer only when new page is allocated
     new_page->first_chunk = chunk;
 
     ft_log("Allocated block size: %d\n", chunk_header_get_size(chunk));
     ft_log("Header address: %p\n", chunk);
     ft_log("Payload address: %p\n", (char *)chunk + sizeof(chunk_header));
     
-    page_insert(&g_state.large, new_page);
     
     return chunk_header_get_payload(chunk);
 }
@@ -107,48 +113,58 @@ void free(void *ptr) {
 
 }
 
-// void *realloc(void *ptr, size_t size) {
-//     ft_log("Realloc! Requested size: %d\n", size);
-//     if (!ptr) {
-//         ft_log("Null pointer: the address was not previously allocated.\n");
-//         return malloc(size);
-//     }
-//     if (size == 0) {
-//         ft_log("Size is 0: freeing memory\n");
-//         free(ptr);
-//         return (NULL);
-//     }
+void *realloc(void *ptr, size_t size) {
+    ft_log("Realloc! Requested size: %d\n", size);
+    if (!ptr) {
+        ft_log("Null pointer: the address was not previously allocated.\n");
+        return malloc(size);
+    }
+    if (size == 0) {
+        ft_log("Size is 0: freeing memory\n");
+        free(ptr);
+        return (NULL);
+    }
 
-//     size_t old_size = BLOCK_SIZE(ptr);
-//     ft_log("Old size: %d\n", old_size);
-//     size = ALIGN(size + sizeof(chunk_header));
-//     int page_size = getpagesize();
-//     int page_count = get_rounded_page_size(size, page_size);
-//     ft_log("Requested aligned size: %d\n", size);
-//     ft_log("Requested page count: %d\n", page_count);*cursor && 
-//     void* new_ptr = mmap(
-//         NULL,
-//         size,    
+    // Retrieve the chunk metadata
+    chunk_header* header = payload_to_header(ptr);
+    size_t old_size = chunk_header_get_size(header);
+    ft_log("Old size: %d\n", old_size);
+    ft_log("New size: %d\n", size);
 
-//         PROT_READ | PROT_WRITE,
-//         MAP_PRIVATE | MAP_ANONYMOUS,
-//         -1,
-//         0
-//     );
-//     if (new_ptr == MAP_FAILED) {
-//         ft_log("Error while reallocating memory\n");
-//         return (NULL);
-//     }
-//     chunk_header* new_header = (chunk_header*)new_ptr;
-//     new_header->size = size;
-//     new_header->allocated = 1;
+    // Compute the new size
+    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
+    ft_log("Computed chunk size: %d\n", chunk_size);
+    int page_size = get_rounded_page_size(chunk_size);
 
-//     size_t min_size = old_size < size ? old_size : size;
-//     ft_memcpy(BLOCK_PAYLOAD(new_ptr), ptr, min_size - sizeof(chunk_header));
-//     free(ptr);
-//     push_page_to_state(&g_heap, new_header);
-//     return BLOCK_PAYLOAD(new_ptr);
-// }
+    page* new_page = get_new_page(page_size);
+
+    // Write chunk metadata
+    chunk_header* chunk = page_get_first_chunk(new_page);
+    chunk_header_set_size(chunk, chunk_size);
+    chunk_header_set_mmapped(chunk, true);
+    // TODO: set prev_inuse to true for the first chunk
+    chunk_header_set_prev_inuse(chunk, true);
+
+    ft_log("Chunk metadata: \n");
+    ft_log("Size: %d\n", chunk_header_get_size(chunk));
+    ft_log("MMapped: %d\n", chunk_header_get_mmapped(chunk));
+    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(chunk));
+
+    // TODO: set first chunk pointer only when new page is allocated
+    new_page->first_chunk = chunk;
+
+    ft_log("Allocated block size: %d\n", chunk_header_get_size(chunk));
+    ft_log("Header address: %p\n", chunk);
+    ft_log("Payload address: %p\n", (char *)chunk + sizeof(chunk_header));
+
+    // Copy the data from the old block to the new block
+    size_t min_size = old_size < chunk_size ? old_size : chunk_size;
+    ft_log("Copying %d bytes\n", min_size - sizeof(chunk_header));
+    ft_memcpy(chunk_header_get_payload(chunk), ptr, min_size - sizeof(chunk_header));
+    ft_log("Data copied\n");
+    free(ptr);
+    return chunk_header_get_payload(chunk);
+}
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
@@ -165,7 +181,6 @@ void show_alloc_mem() {
 }
 
 void show_block_status(void *ptr) {
-
 
     ft_log("--------------------\n");
     ft_log("Memory block status: \n");
