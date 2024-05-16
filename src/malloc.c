@@ -196,38 +196,12 @@ void page_remove(page** self, page* target) {
     }
 }
 
-// TODO: use the same int type
-// TODO: look at ALIGN macro
-int get_rounded_page_size(size_t size) {
+size_t get_rounded_page_size(size_t size) {
     
-    int page_size = getpagesize();
-    int page_count = size / page_size;
+    size_t page_size = getpagesize();
+    size_t page_count = size / page_size;
     if (size % page_size) {
         page_count++;
     }
     return page_count * page_size;
 }
-
-// int is_mmapped(mchunkptr p) {
-//     if (p->mchunk_size & IS_MMAPPED)
-//         return (1);
-//     return (0);
-// }
-
-// int is_non_main_arena(mchunkptr p) {
-//     if (p->mchunk_size & NON_MAIN_ARENA)
-//         return (1);
-//     return (0);
-// }
-
-// int prev_inuse(mchunkptr p) {
-//     if (p->mchunk_size & PREV_INUSE)
-//         return (1);
-//     return (0);
-// }
-
-// int current_in_use(mchunkptr p) {
-//     if (p->fd->mchunk_prev_size & PREV_INUSE)
-//         return (1);
-//     return (0);
-// }

@@ -38,16 +38,16 @@ int main(void)
 	free(ptr2);
 	free(ptr3);
 	ft_putstr("ptr2 and ptr3 freed\n");
-	// ft_putstr("Requesting large block\n");
-	// void* ptr4 = malloc(7000 * sizeof(char));
-	// for (int i = 0; i < 7000; i++) {
-	// 	((char *)ptr4)[i] = 'A';
-	// }
-	// ft_putstr("ptr4: ");
-	// ft_putstr(ptr4);
-	// ft_putstr("\n");
+	ft_putstr("Requesting large block\n");
+	void* ptr4 = malloc(7000 * sizeof(char));
+	for (int i = 0; i < 7000; i++) {
+		((char *)ptr4)[i] = 'A';
+	}
+	ft_putstr("ptr4: ");
+	ft_putstr(ptr4);
+	ft_putstr("\n");
 	show_alloc_mem();
-	// free(ptr4);
-	// show_alloc_mem();
+	free(ptr4);
+	show_alloc_mem();
 	return 0;
 }

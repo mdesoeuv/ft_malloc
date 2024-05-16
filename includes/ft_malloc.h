@@ -88,9 +88,9 @@ typedef struct s_mstate {
     page*  large;
 } mstate;
 
-void    page_insert(page** self, page* new);
-void    page_remove(page** self, page* target);
-int     get_rounded_page_size(size_t size);
+void        page_insert(page** self, page* new);
+void        page_remove(page** self, page* target);
+size_t      get_rounded_page_size(size_t size);
 
 
 // typedef struct malloc_header {
