@@ -2,6 +2,7 @@
 # define FT_MALLOC_H
 
 #include "../ft_printf/ft_printf.h"
+#include "../libft/libft.h"
 #include <sys/mman.h> // mmap, munmap
 #include <unistd.h> // getpagesize
 #include <sys/resource.h> // getrlimit
@@ -90,7 +91,7 @@ typedef struct s_mstate {
 
 void        page_insert(page** self, page* new);
 void        page_remove(page** self, page* target);
-size_t      get_rounded_page_size(size_t size);
+size_t      page_get_rounded_size(size_t size);
 
 
 // typedef struct malloc_header {
