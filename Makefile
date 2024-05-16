@@ -12,6 +12,8 @@ DEBUG_FLAGS := # -g3 # -fsanitize=address
 # Source files
 SRC_DIR := src
 SRC :=	malloc.c \
+		realloc.c \
+		free.c \
 		utils.c
 SRC_FILES := $(addprefix $(SRC_DIR)/, $(SRC))
 

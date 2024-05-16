@@ -1,5 +1,7 @@
 #include "../includes/ft_malloc.h"
 
+extern mstate g_state;
+
 void* align(void* ptr, size_t alignment) {
     return (void*)(((size_t)ptr + alignment - 1) & ~(alignment - 1));
 }
@@ -12,7 +14,6 @@ size_t to_next_multiple(size_t value, size_t alignment) {
 void is_aligned(void* ptr) {
     if (((size_t)ptr & (ALLOCATION_ALIGNMENT - 1)) != 0) {
         ft_log("Pointer is not aligned\n");        
-        exit(1);
     }
 }
 
@@ -73,4 +74,42 @@ void* page_get_end(page *self) {
 
 page* page_get_start(chunk_header* first_chunk) {
     return (page*)((size_t)(first_chunk) - (size_t)first_chunk % getpagesize());
+}
+
+size_t page_get_rounded_size(size_t size) {
+    
+    size_t page_size = getpagesize();
+    size_t page_count = size / page_size;
+    if (size % page_size) {
+        page_count++;
+    }
+    return page_count * page_size;
+}
+
+
+void show_alloc_mem() {
+    ft_log("-- Show alloc mem! --\n");
+    ft_log("LARGE\n");
+    page* current = g_state.large;
+    int total_size = 0;
+    while (current) {
+        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        total_size += current->size;
+        current = current->next;
+    }
+    ft_log("LARGE Size: %d\n", total_size);
+    ft_log("-- End of show alloc mem! --\n");
+}
+
+void show_block_status(void *ptr) {
+
+    ft_log("--------------------\n");
+    ft_log("Memory block status: \n");
+    chunk_header* header = payload_to_header(ptr);
+    ft_log("Size: %d\n", chunk_header_get_size(header));
+    ft_log("Allocated: %d\n", chunk_header_get_arena(header));
+    ft_log("Header address: %p\n", header);
+    ft_log("Payload address: %p\n", ptr);
+    ft_log("Next block header: %p\n", (size_t)header + chunk_header_get_size(header));
+    ft_log("--------------------\n");
 }
