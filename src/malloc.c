@@ -102,6 +102,7 @@ void free(void *ptr) {
     int size = chunk_header_get_size(header);
     ft_log("Chunk Size: %d\n", size);
     page* start = page_get_start(header);
+    ft_log("Page start: %p\n", start);
     page_remove(&g_state.large, start);
     ft_log("Memory freed\n");
 

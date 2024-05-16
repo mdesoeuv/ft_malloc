@@ -33,7 +33,7 @@ int main(void)
 	}
 	ft_putstr("ptr3 allocated\n");
 	show_alloc_mem();
-	// free(ptr);
+	free(ptr);
 	// free(ptr2);
 	// free(ptr3);
 	// ft_putstr("ptr2 and ptr3 freed\n");
@@ -45,7 +45,7 @@ int main(void)
 	// ft_putstr("ptr4: ");
 	// ft_putstr(ptr4);
 	// ft_putstr("\n");
-	// show_alloc_mem();
+	show_alloc_mem();
 	// free(ptr4);
 	// show_alloc_mem();
 	return 0;
