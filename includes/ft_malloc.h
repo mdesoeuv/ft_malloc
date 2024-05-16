@@ -44,7 +44,7 @@ typedef struct s_chunk_header {
 
 void* align(void* ptr, size_t alignment);
 
-size_t to_next_multiple_truc_a(size_t value, size_t alignment);
+size_t to_next_multiple(size_t value, size_t alignment);
 
 void is_aligned(void* ptr);
 

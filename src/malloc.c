@@ -33,7 +33,7 @@ void *malloc(size_t size) {
     // TODO: ensure that allocation is enough for linked list of freed chunks
 
     // Compute page size
-    int chunk_size = to_next_multiple_truc_a(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
+    int chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
     int page_size = get_rounded_page_size(chunk_size);
 
