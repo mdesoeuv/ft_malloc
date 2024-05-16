@@ -34,9 +34,10 @@ int main(void)
 	ft_putstr("ptr3 allocated\n");
 	show_alloc_mem();
 	free(ptr);
-	// free(ptr2);
-	// free(ptr3);
-	// ft_putstr("ptr2 and ptr3 freed\n");
+	show_alloc_mem();
+	free(ptr2);
+	free(ptr3);
+	ft_putstr("ptr2 and ptr3 freed\n");
 	// ft_putstr("Requesting large block\n");
 	// void* ptr4 = malloc(7000 * sizeof(char));
 	// for (int i = 0; i < 7000; i++) {

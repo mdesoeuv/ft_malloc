@@ -102,7 +102,6 @@ void free(void *ptr) {
     int size = chunk_header_get_size(header);
     ft_log("Chunk Size: %d\n", size);
     page* start = page_get_start(header);
-    ft_log("Page start: %p\n", start);
     page_remove(&g_state.large, start);
     ft_log("Memory freed\n");
 
@@ -191,7 +190,8 @@ void page_remove(page** self, page* target) {
         cursor = &(*cursor)->next;
     }
     *cursor = (*cursor)->next;
-    if(!munmap(target, target->size)) {
+    ft_log("unmapping page of size %d at address: %p\n", target->size, target);
+    if(munmap((void*)target, target->size)) {
         ft_log("Error while unmaping page\n");
     }
 }
