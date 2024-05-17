@@ -63,6 +63,18 @@ void* chunk_header_get_next(chunk_header *self) {
     return (void*)((size_t)self + chunk_header_get_size(self));
 }
 
+void* chunk_header_get_free_small(size_t chunk_size) {
+    free_chunk_header* cursor = g_state.small_free;
+    while (cursor != NULL) {
+        if (chunk_header_get_size((chunk_header*)cursor) >= chunk_size) {
+            free_chunk_remove(&g_state.small_free, cursor);
+            return cursor;
+        }
+        cursor = cursor->next;
+    }
+    return NULL;
+}
+
 void chunk_header_print_metadata(chunk_header *self) {
     ft_log("Chunk metadata: \n");
     ft_log("Address: %p\n", self);
@@ -116,7 +128,7 @@ void page_print_metadata(page *self) {
     ft_log("Address: %p\n", self);
     ft_log("Next: %p\n", self->next);
     ft_log("Size: %d\n", self->size);
-    ft_log("First free chunk: %p\n", self->first_free);
+    ft_log("First free chunk: %p\n", self->first_chunk);
     ft_log("-- End of page metadata --\n");
 }
 

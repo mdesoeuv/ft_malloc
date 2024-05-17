@@ -24,6 +24,8 @@ void initialize_log_level() {
 }
 
 page* page_get_new(size_t page_size, allocation_type type) {
+
+    ft_log("Requesting new page of size: %d\n", page_size);
     // Request page from kernel
     void* ptr = mmap(
         NULL,
@@ -39,17 +41,18 @@ page* page_get_new(size_t page_size, allocation_type type) {
         return (NULL);
     }
 
+
     // Write page metadata
     page* new_page = (page *)ptr;
     new_page->size = page_size;
-    new_page->first_free = page_get_first_chunk(new_page);
+    new_page->first_chunk = page_get_first_chunk(new_page);
     new_page->next = NULL;
 
     size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT);
     ft_log("Remaining size: %d\n", remaining_size);
-    chunk_header* first = new_page->first_free;
+    chunk_header* first = new_page->first_chunk;
     chunk_header_set_size(first, remaining_size);
-    chunk_header_set_mmapped(first, true);
+    chunk_header_set_mmapped(first, false);
     chunk_header_set_prev_inuse(first, true);
 
     page_print_metadata(new_page);
@@ -135,45 +138,69 @@ chunk_header* large_alloc(size_t chunk_size) {
     // Request page from kernel
     page* new_page = page_get_new(page_size, LARGE);
 
-    chunk_header* chunk = new_page->first_free;
+    chunk_header* chunk = new_page->first_chunk;
+    chunk_header_set_mmapped(chunk, true);
 
     chunk_header_print_metadata(chunk);
 
-    new_page->first_free = chunk_header_get_next(chunk);
+    new_page->first_chunk = chunk_header_get_next(chunk);
 
     return chunk;
 }
 
 chunk_header* small_alloc(size_t chunk_size) {
-    page* current = g_state.small;
 
-    if (!current || !current->first_free) {
-        ft_log("No small page available, requesting new page to Kernel\n");
-        current = page_get_new(page_get_rounded_size(chunk_size), SMALL);
+    chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size);
+    if (free_chunk == NULL) {
+        size_t page_size = page_get_rounded_size(chunk_size);
+        page* new_page = page_get_new(page_size, SMALL);
+        free_chunk = new_page->first_chunk;
+        chunk_header_divide((chunk_header*)free_chunk, chunk_size, SMALL);
     }
-    chunk_header* chunk = current->first_free;
-    if (chunk_header_get_size(chunk) < chunk_size) {
-        ft_log("Chunk size is too small, requesting new page to Kernel\n");
-        current = page_get_new(page_get_rounded_size(chunk_size), SMALL);
-        chunk = current->first_free;
-    }
-    chunk_header_set_size(chunk, chunk_size);
-    chunk_header_set_mmapped(chunk, false);
-    chunk_header_set_prev_inuse(chunk, true);
-    current->first_free = chunk_header_get_next(chunk);
-    ft_log("New first free chunk: %p\n", current->first_free);
- 
-    // Compute the size until end of page
-    size_t remaining_size = (size_t)page_get_end(current) - (size_t)current->first_free;
-    ft_log("Remaining size until end of page: %d\n", remaining_size);
+    return free_chunk;
+}
 
-    if ((size_t)current->first_free + sizeof(page) > (size_t)page_get_end(current)) {
-        ft_log("No more space in current page\n");
-        current->first_free = NULL;
+
+void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type type) {
+    ft_log("Dividing chunk at address: %p\n", chunk);
+    size_t old_size = chunk_header_get_size(chunk);
+    if (new_size >= old_size) {
+        ft_log("ERROR: New size is greater than old size\n");
+        return;
     }
-    else {
-        ft_log("Next first free chunk: %p\n", current->first_free);
-        chunk_header_set_prev_inuse(current->first_free, true);
+    size_t diff = old_size - new_size;
+
+    // TODO: ensure that new chunk is big enough for metadata
+    if (diff < CHUNK_MIN_SIZE) {
+        ft_log("ERROR: New size is too small\n");
+        return;
     }
-    return chunk;
+
+    // Write new chunk metadata
+    chunk_header* new_chunk = (chunk_header *)((size_t)chunk + new_size);
+    chunk_header_set_size(new_chunk, diff);
+    chunk_header_set_mmapped(new_chunk, false);
+    chunk_header_set_prev_inuse(new_chunk, true);
+
+    // Update the size of the current chunk
+    chunk_header_set_size(chunk, new_size);
+    
+    // Insert the new chunk in the free list
+    // TODO: insert TINY in the right list
+    switch(type) {
+        case TINY:
+            free_chunk_insert(&g_state.small_free, (free_chunk_header *)new_chunk);
+            break;
+        case SMALL:
+            free_chunk_insert(&g_state.small_free, (free_chunk_header *)new_chunk);
+            break;
+        case LARGE:
+            break;
+    }
+
+    ft_log("Resized chunk at address: %p\n", chunk);
+    ft_log("Chunk 1: \n");
+    chunk_header_print_metadata(chunk);
+    ft_log("Chunk 2: \n");
+    chunk_header_print_metadata(new_chunk);
 }

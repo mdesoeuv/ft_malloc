@@ -29,6 +29,8 @@ extern int LOG_LEVEL;
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
 #define SMALL_THRESHOLD      1008
 #define LARGE_THRESHOLD      1024 * 1024
+#define SMALL_PAGE_REQUEST   4096
+#define CHUNK_MIN_SIZE       32
 
 typedef enum e_allocation_type {
     TINY,
@@ -77,12 +79,19 @@ void*           chunk_header_get_next(chunk_header *self);
 void            chunk_header_print_metadata(chunk_header *self);
 allocation_type chunk_get_allocation_type(size_t size);
 void*           payload_to_header(void* payload);
+void*           chunk_header_get_free_small(size_t chunk_size);
+void            chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type type);
 
-typedef void* page_ptr;
+void                    free_chunk_insert(free_chunk_header** self, free_chunk_header* chunk);
+void                    free_chunk_remove(free_chunk_header** self, free_chunk_header* target);
+free_chunk_header*      free_find_size(free_chunk_header* self, size_t size);
+void                    free_small(chunk_header* header);
+void                    free_large(chunk_header* header);
+void                    free_print_list(free_chunk_header* self);
 
 typedef struct s_page {
     struct s_page*  next;
-    chunk_header*   first_free;
+    chunk_header*   first_chunk;
     size_t          size;
 } page;
 
@@ -97,8 +106,8 @@ typedef struct s_mstate {
     page*  tiny;
     page*  small;
     page*  large;
-    chunk_header* tiny_free;
-    chunk_header* small_free;
+    free_chunk_header* tiny_free;
+    free_chunk_header* small_free;
 } mstate;
 
 void        page_insert(page** self, page* new);
