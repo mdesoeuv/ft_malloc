@@ -56,7 +56,7 @@ void    free_chunk_remove(free_chunk_header** self, free_chunk_header* target) {
 void    free_print_list(free_chunk_header* self) {
     free_chunk_header* cursor = self;
     while (cursor != NULL) {
-        ft_log("Free chunk at address: %p\n", cursor);
+        ft_log("Free chunk of size %d, at address: %p\n", chunk_header_get_size((chunk_header*)cursor), cursor);
         cursor = cursor->next;
     }
     ft_log("End of free list\n");
