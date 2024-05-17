@@ -88,7 +88,7 @@ allocation_type chunk_get_allocation_type(size_t size) {
 
     // TODO: set type to TINY if size < SMALL_THRESHOLD 
     if (size < SMALL_THRESHOLD) {
-        return SMALL;
+        return TINY;
     }
     if (size < LARGE_THRESHOLD) {
         return SMALL;
@@ -161,6 +161,13 @@ void show_alloc_mem() {
         current = current->next;
     }
     ft_log("LARGE Size: %d\n\n", total_size);
+
+    ft_log("FREE\n");
+    ft_log("TINY\n");
+    free_print_list(g_state.tiny_free);
+    ft_log("SMALL\n");
+    free_print_list(g_state.small_free);
+
     ft_log("-- End of show alloc mem! --\n");
 }
 

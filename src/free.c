@@ -24,11 +24,11 @@ void free(void *ptr) {
 
     ft_log("Memory freed\n");
     
-    ft_log("Tiny free list:\n");
-    free_print_list(g_state.tiny_free);
+    // ft_log("Tiny free list:\n");
+    // free_print_list(g_state.tiny_free);
     
-    ft_log("Small free list:\n");
-    free_print_list(g_state.small_free);
+    // ft_log("Small free list:\n");
+    // free_print_list(g_state.small_free);
 
 
 }
@@ -83,13 +83,20 @@ void    free_print_list(free_chunk_header* self) {
 
 
 // TODO: divide this function in find and not found cases
-free_chunk_header*    free_find_size(free_chunk_header* self, size_t size) {
+free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, allocation_type type) {
     free_chunk_header* cursor = self;
+    free_chunk_header** list;
+    ft_log("Searching for chunk of size %d in list %d\n", size, type);
+    if (type == TINY) {
+        list = &g_state.tiny_free;
+    } else {
+        list = &g_state.small_free;
+    }
     while (cursor != NULL) {
         if (chunk_header_get_size((chunk_header*)cursor) >= size) {
             ft_log("Found chunk of size %d at address: %p\n", size, cursor);
-            chunk_header_divide((chunk_header*)cursor, size, SMALL);
-            free_chunk_remove(&g_state.small_free, cursor);
+            chunk_header_divide((chunk_header*)cursor, size, type);
+            free_chunk_remove(list, cursor);
             return cursor;
         }
         cursor = cursor->next;

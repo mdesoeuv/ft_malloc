@@ -58,8 +58,7 @@ page* page_get_new(size_t page_size, allocation_type type) {
     page_print_metadata(new_page);
     switch(type) {
         case TINY:
-            // TODO: page_insert(&g_state.tiny, new_page);
-            page_insert(&g_state.small, new_page);
+            page_insert(&g_state.tiny, new_page);
             break;
         case SMALL:
             page_insert(&g_state.small, new_page);
@@ -94,7 +93,7 @@ void *malloc(size_t size) {
     // Determine allocation type
     switch(type) {
         case TINY:
-            chunk = small_alloc(chunk_size);
+            chunk = tiny_alloc(chunk_size);
             break;
         case SMALL:
             chunk = small_alloc(chunk_size);
@@ -103,9 +102,7 @@ void *malloc(size_t size) {
             chunk = large_alloc(chunk_size);
             break;
     }
-
     chunk_header_print_metadata(chunk);
-    
     return chunk_header_get_payload(chunk);
 }
 
@@ -147,12 +144,24 @@ chunk_header* large_alloc(size_t chunk_size) {
 
 chunk_header* small_alloc(size_t chunk_size) {
     ft_log("Small Allocation\n");
-    chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size);
+    chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size, SMALL);
     if (free_chunk == NULL) {
-        size_t page_size = page_get_rounded_size(chunk_size);
-        page* new_page = page_get_new(page_size, SMALL);
+        // size_t page_size = page_get_rounded_size(chunk_size);
+        page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size, SMALL);
+    }
+    return free_chunk;
+}
+
+chunk_header* tiny_alloc(size_t chunk_size) {
+    ft_log("Tiny Allocation\n");
+    chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.tiny_free, chunk_size, TINY);
+    if (free_chunk == NULL) {
+        size_t page_size = page_get_rounded_size(chunk_size);
+        page* new_page = page_get_new(page_size, TINY);
+        free_chunk = new_page->first_chunk;
+        chunk_header_divide((chunk_header*)free_chunk, chunk_size, TINY);
     }
     return free_chunk;
 }
@@ -183,10 +192,9 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type t
     chunk_header_set_size(chunk, new_size);
     
     // Insert the new chunk in the free list
-    // TODO: insert TINY in the right list
     switch(type) {
         case TINY:
-            free_chunk_insert(&g_state.small_free, (free_chunk_header *)new_chunk);
+            free_chunk_insert(&g_state.tiny_free, (free_chunk_header *)new_chunk);
             break;
         case SMALL:
             free_chunk_insert(&g_state.small_free, (free_chunk_header *)new_chunk);

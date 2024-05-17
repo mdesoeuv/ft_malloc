@@ -28,9 +28,10 @@ extern int LOG_LEVEL;
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
 #define SMALL_THRESHOLD      512
-#define LARGE_THRESHOLD      1024
-#define SMALL_PAGE_REQUEST   4096
+#define LARGE_THRESHOLD      2048
+#define SMALL_PAGE_REQUEST   12 * PAGE_SIZE
 #define CHUNK_MIN_SIZE       32
+#define PAGE_SIZE            4096
 
 typedef enum e_allocation_type {
     TINY,
@@ -84,7 +85,7 @@ void            chunk_header_divide(chunk_header* chunk, size_t new_size, alloca
 
 void                    free_chunk_insert(free_chunk_header** self, free_chunk_header* chunk);
 void                    free_chunk_remove(free_chunk_header** self, free_chunk_header* target);
-free_chunk_header*      free_find_size(free_chunk_header* self, size_t size);
+free_chunk_header*      free_find_size(free_chunk_header* self, size_t size, allocation_type type);
 void                    free_tiny(chunk_header* header);
 void                    free_small(chunk_header* header);
 void                    free_large(chunk_header* header);
@@ -117,6 +118,7 @@ size_t      page_get_rounded_size(size_t size);
 
 chunk_header* large_alloc(size_t chunk_size);
 chunk_header* small_alloc(size_t chunk_size);
+chunk_header* tiny_alloc(size_t chunk_size);
 
 // typedef struct malloc_header {
 //     size_t prev_size;
