@@ -51,11 +51,15 @@ page* page_get_new(size_t page_size, allocation_type type) {
     size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT);
     ft_log("Remaining size: %d\n", remaining_size);
     chunk_header* first = new_page->first_chunk;
+
+    // Write chunk metadata
     chunk_header_set_size(first, remaining_size);
     chunk_header_set_mmapped(first, false);
     chunk_header_set_prev_inuse(first, true);
 
     page_print_metadata(new_page);
+
+    // Insert page in the appropriate list
     switch(type) {
         case TINY:
             page_insert(&g_state.tiny, new_page);
@@ -178,7 +182,7 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type t
 
     // TODO: ensure that new chunk is big enough for metadata
     if (diff < CHUNK_MIN_SIZE) {
-        ft_log("ERROR: New size is too small\n");
+        ft_log("New size is too small chunk can't be divided\n");
         return;
     }
 

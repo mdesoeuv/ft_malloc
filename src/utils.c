@@ -86,7 +86,6 @@ void chunk_header_print_metadata(chunk_header *self) {
 
 allocation_type chunk_get_allocation_type(size_t size) {
 
-    // TODO: set type to TINY if size < SMALL_THRESHOLD 
     if (size < SMALL_THRESHOLD) {
         return TINY;
     }

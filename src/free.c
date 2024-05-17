@@ -23,14 +23,6 @@ void free(void *ptr) {
     }
 
     ft_log("Memory freed\n");
-    
-    // ft_log("Tiny free list:\n");
-    // free_print_list(g_state.tiny_free);
-    
-    // ft_log("Small free list:\n");
-    // free_print_list(g_state.small_free);
-
-
 }
 
 // TODO: Refactor for code duplication
@@ -82,7 +74,6 @@ void    free_print_list(free_chunk_header* self) {
 }
 
 
-// TODO: divide this function in find and not found cases
 free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, allocation_type type) {
     free_chunk_header* cursor = self;
     free_chunk_header** list;

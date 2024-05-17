@@ -30,7 +30,7 @@ extern int LOG_LEVEL;
 #define SMALL_THRESHOLD      512
 #define LARGE_THRESHOLD      2048
 #define SMALL_PAGE_REQUEST   12 * PAGE_SIZE
-#define CHUNK_MIN_SIZE       32
+#define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
 #define PAGE_SIZE            4096
 
 typedef enum e_allocation_type {
@@ -39,14 +39,23 @@ typedef enum e_allocation_type {
     LARGE
 } allocation_type;
 
-// TODO: Document structure and glossary
 /*
-    Block header structure
+    Chunk header structure
+    This structure is used to keep track of the memory chunks
+
     This structure uses bit fields, for more info:
     https://en.cppreference.com/w/cpp/language/bit_field
+
+    ------------------------------
+    |        prev_size           |
+    ------------------------------
+    |       size         | A M P |
+    ------------------------------
+    |        payload             |
+    ------------------------------
+
 */
 typedef struct s_chunk_header {
-    // TODO: document
     size_t                  prev_size;
     size_t                  word_count : 8 * sizeof(size_t) - 3;
     bool                     arena : 1;
@@ -54,6 +63,25 @@ typedef struct s_chunk_header {
     bool                     prev_inuse : 1;
 } chunk_header;
 
+
+
+/*
+    Free chunk header structure
+    This structure is used to keep track of the free memory chunks
+
+    ------------------------------
+    |        prev_size           |
+    ------------------------------
+    |       size         | A M P |
+    ------------------------------
+    |        next ptr            |
+    ------------------------------
+    |        prev ptr            |
+    ------------------------------
+    |        payload             |
+    ------------------------------
+
+*/
 typedef struct s_free_chunk_header {
     chunk_header            header;
     struct s_free_chunk_header* next;
@@ -91,6 +119,27 @@ void                    free_small(chunk_header* header);
 void                    free_large(chunk_header* header);
 void                    free_print_list(free_chunk_header* self);
 
+
+/*
+    Page structure
+    This structure is used to keep track of the memory pages
+    allocated by the program
+
+    ------------------------------
+    |        next_page ptr        |
+    ------------------------------
+    |        first_chunk ptr      |
+    ------------------------------
+    |        page size            |
+    ------------------------------
+    |        padding (alignment)  |
+    ------------------------------
+    |        CHUNKS               |
+    ------------------------------
+
+
+*/
+
 typedef struct s_page {
     struct s_page*  next;
     chunk_header*   first_chunk;
@@ -104,6 +153,18 @@ page*   page_get_new(size_t page_size, allocation_type type);
 page*   page_get_start(chunk_header* first_chunk);
 void    page_print_metadata(page *self);
 
+
+/*
+    Global state structure
+    This structure is used to keep track of 
+    the page lists and free chunk lists
+    
+    The next free chunk pointers are written directly in 
+    the headers of the chunks
+
+    Identically, the next page pointers are written directly in
+    the page headers 
+*/
 typedef struct s_mstate {
     page*  tiny;
     page*  small;
@@ -119,26 +180,6 @@ size_t      page_get_rounded_size(size_t size);
 chunk_header* large_alloc(size_t chunk_size);
 chunk_header* small_alloc(size_t chunk_size);
 chunk_header* tiny_alloc(size_t chunk_size);
-
-// typedef struct malloc_header {
-//     size_t prev_size;
-//     size_t size;
-// } malloc_header;
-
-// struct malloc_chunk {
-
-//   size_t      mchunk_prev_size;  /* Size of previous chunk (if free).  */
-//   size_t      mchunk_size;       /* Size in bytes, including overhead. */
-
-//   struct malloc_chunk* fd;         /* double links -- used only if free. */
-//   struct malloc_chunk* bk;
-
-//   /* Only used for large blocks: pointer to next larger size.  */
-//   struct malloc_chunk* fd_nextsize; /* double links -- used only if free. */
-//   struct malloc_chunk* bk_nextsize;
-// };
-
-// typedef struct malloc_chunk* mchunkptr;
 
 
 #endif

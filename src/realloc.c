@@ -29,19 +29,17 @@ void *realloc(void *ptr, size_t size) {
     chunk_header* chunk;
     
     switch(type) {
-        // TODO: change to tiny_alloc
         case TINY:
             ft_log("Tiny Allocation\n");
-            chunk = small_alloc(chunk_size);
+            chunk = tiny_alloc(chunk_size);
             break;
         case SMALL:
             ft_log("Small Allocation\n");
             chunk = small_alloc(chunk_size);
             break;
         case LARGE:
-        // TODO: change to large_alloc
             ft_log("Large Allocation\n");
-            chunk = small_alloc(chunk_size);
+            chunk = large_alloc(chunk_size);
             break;
     }
 
