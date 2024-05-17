@@ -3,6 +3,6 @@
 void    show_alloc_mem() {
 }
 
-void    show_block_status(void *ptr) {
+void    show_chunk_status(void *ptr) {
 	(void)ptr;
 }

@@ -27,7 +27,7 @@ void chunk_header_set_size(chunk_header *self, size_t size) {
         ft_log("Size is not a multiple of 8\n");
         exit(1);
     }
-    self->word_count = size >> 3;
+    self->word_count = size / 8;
 }
 
 bool chunk_header_get_arena(chunk_header *self) {
@@ -59,6 +59,43 @@ void* chunk_header_get_payload(chunk_header *self) {
     return align(header_end, ALLOCATION_ALIGNMENT);
 }
 
+void* chunk_header_get_next(chunk_header *self) {
+    return (void*)((size_t)self + chunk_header_get_size(self));
+}
+
+void* chunk_header_get_free_small(size_t chunk_size) {
+    free_chunk_header* cursor = g_state.small_free;
+    while (cursor != NULL) {
+        if (chunk_header_get_size((chunk_header*)cursor) >= chunk_size) {
+            free_chunk_remove(&g_state.small_free, cursor);
+            return cursor;
+        }
+        cursor = cursor->next;
+    }
+    return NULL;
+}
+
+void chunk_header_print_metadata(chunk_header *self) {
+    ft_log("Chunk metadata: \n");
+    ft_log("Address: %p\n", self);
+    ft_log("Size: %d\n", chunk_header_get_size(self));
+    ft_log("Arena: %d\n", chunk_header_get_arena(self));
+    ft_log("MMapped: %d\n", chunk_header_get_mmapped(self));
+    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
+}
+
+allocation_type chunk_get_allocation_type(size_t size) {
+
+    // TODO: set type to TINY if size < SMALL_THRESHOLD 
+    if (size < SMALL_THRESHOLD) {
+        return TINY;
+    }
+    if (size < LARGE_THRESHOLD) {
+        return SMALL;
+    }
+    return LARGE;
+}
+
 void* payload_to_header(void* payload) {
     return (chunk_header*)payload - 1;
 }
@@ -86,22 +123,55 @@ size_t page_get_rounded_size(size_t size) {
     return page_count * page_size;
 }
 
+void page_print_metadata(page *self) {
+    ft_log("-- Page metadata: --\n");
+    ft_log("Address: %p\n", self);
+    ft_log("Next: %p\n", self->next);
+    ft_log("Size: %d\n", self->size);
+    ft_log("First free chunk: %p\n", self->first_chunk);
+    ft_log("-- End of page metadata --\n");
+}
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
-    ft_log("LARGE\n");
-    page* current = g_state.large;
-    int total_size = 0;
+    ft_log("TINY\n");
+    page* current = g_state.tiny;
+    size_t total_size = 0;
     while (current) {
         ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
         total_size += current->size;
         current = current->next;
     }
-    ft_log("LARGE Size: %d\n", total_size);
+    ft_log("TINY Size: %d\n\n", total_size);
+    ft_log("SMALL\n");
+    current = g_state.small;
+    total_size = 0;
+    while (current) {
+        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        total_size += current->size;
+        current = current->next;
+    }
+    ft_log("SMALL Size: %d\n\n", total_size);
+    ft_log("LARGE\n");
+    current = g_state.large;
+    total_size = 0;
+    while (current) {
+        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        total_size += current->size;
+        current = current->next;
+    }
+    ft_log("LARGE Size: %d\n\n", total_size);
+
+    ft_log("FREE\n");
+    ft_log("TINY\n");
+    free_print_list(g_state.tiny_free);
+    ft_log("SMALL\n");
+    free_print_list(g_state.small_free);
+
     ft_log("-- End of show alloc mem! --\n");
 }
 
-void show_block_status(void *ptr) {
+void show_chunk_status(void *ptr) {
 
     ft_log("--------------------\n");
     ft_log("Memory block status: \n");
