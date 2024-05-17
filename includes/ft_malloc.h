@@ -27,8 +27,8 @@ extern int LOG_LEVEL;
 
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
-#define SMALL_THRESHOLD      1008
-#define LARGE_THRESHOLD      1024 * 1024
+#define SMALL_THRESHOLD      512
+#define LARGE_THRESHOLD      1024
 #define SMALL_PAGE_REQUEST   4096
 #define CHUNK_MIN_SIZE       32
 
@@ -85,6 +85,7 @@ void            chunk_header_divide(chunk_header* chunk, size_t new_size, alloca
 void                    free_chunk_insert(free_chunk_header** self, free_chunk_header* chunk);
 void                    free_chunk_remove(free_chunk_header** self, free_chunk_header* target);
 free_chunk_header*      free_find_size(free_chunk_header* self, size_t size);
+void                    free_tiny(chunk_header* header);
 void                    free_small(chunk_header* header);
 void                    free_large(chunk_header* header);
 void                    free_print_list(free_chunk_header* self);

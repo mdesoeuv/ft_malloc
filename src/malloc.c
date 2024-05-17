@@ -59,7 +59,7 @@ page* page_get_new(size_t page_size, allocation_type type) {
     switch(type) {
         case TINY:
             // TODO: page_insert(&g_state.tiny, new_page);
-            page_insert(&g_state.large, new_page);
+            page_insert(&g_state.small, new_page);
             break;
         case SMALL:
             page_insert(&g_state.small, new_page);
@@ -94,16 +94,13 @@ void *malloc(size_t size) {
     // Determine allocation type
     switch(type) {
         case TINY:
-            ft_log("Tiny Allocation\n");
             chunk = small_alloc(chunk_size);
             break;
         case SMALL:
-            ft_log("Small Allocation\n");
             chunk = small_alloc(chunk_size);
             break;
         case LARGE:
-            ft_log("Large Allocation\n");
-            chunk = small_alloc(chunk_size);
+            chunk = large_alloc(chunk_size);
             break;
     }
 
@@ -132,7 +129,7 @@ void page_remove(page** self, page* target) {
 
 
 chunk_header* large_alloc(size_t chunk_size) {
-    
+    ft_log("Large Allocation\n");
     size_t page_size = page_get_rounded_size(chunk_size);
 
     // Request page from kernel
@@ -149,7 +146,7 @@ chunk_header* large_alloc(size_t chunk_size) {
 }
 
 chunk_header* small_alloc(size_t chunk_size) {
-
+    ft_log("Small Allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size);
     if (free_chunk == NULL) {
         size_t page_size = page_get_rounded_size(chunk_size);

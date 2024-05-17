@@ -16,14 +16,33 @@ void free(void *ptr) {
 
     if (chunk_header_get_mmapped(header)) {
         free_large(header);
+    } else if (size < SMALL_THRESHOLD) {
+        free_tiny(header);
     } else {
         free_small(header);
     }
 
     ft_log("Memory freed\n");
+    
+    ft_log("Tiny free list:\n");
+    free_print_list(g_state.tiny_free);
+    
     ft_log("Small free list:\n");
     free_print_list(g_state.small_free);
+
+
 }
+
+// TODO: Refactor for code duplication
+void    free_tiny(chunk_header* header) {
+    ft_log("Freeing tiny chunk\n");
+    free_chunk_insert(&g_state.tiny_free, (free_chunk_header*)header);
+    chunk_header* next = chunk_header_get_next(header);
+    if (next != NULL) {
+        chunk_header_set_prev_inuse(next, false);
+    }
+}
+
 
 void    free_small(chunk_header* header) {
     ft_log("Freeing small chunk\n");
