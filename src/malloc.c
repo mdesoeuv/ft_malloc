@@ -212,15 +212,8 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type t
     chunk_header_set_size(chunk, new_size);
     
     // Insert the new chunk in the free list
-    switch(type) {
-        case TINY:
-            free_chunk_insert(&g_state.tiny_free, (free_chunk_header *)new_chunk);
-            break;
-        case SMALL:
-            free_chunk_insert(&g_state.small_free, (free_chunk_header *)new_chunk);
-            break;
-        case LARGE:
-            break;
+    if (type != LARGE) {
+        free_chunk_insert((free_chunk_header *)new_chunk);
     }
 
     ft_log("Resized chunk at address: %p\n", chunk);

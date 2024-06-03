@@ -67,7 +67,7 @@ void* chunk_header_get_free_small(size_t chunk_size) {
     free_chunk_header* cursor = g_state.small_free;
     while (cursor != NULL) {
         if (chunk_header_get_size((chunk_header*)cursor) >= chunk_size) {
-            free_chunk_remove(&g_state.small_free, cursor);
+            free_chunk_remove(cursor);
             return cursor;
         }
         cursor = cursor->next;
