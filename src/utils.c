@@ -67,13 +67,23 @@ void* chunk_header_get_free_small(size_t chunk_size) {
     free_chunk_header* cursor = g_state.small_free;
     while (cursor != NULL) {
         if (chunk_header_get_size((chunk_header*)cursor) >= chunk_size) {
-            free_chunk_remove(&g_state.small_free, cursor);
+            free_chunk_remove(cursor);
             return cursor;
         }
         cursor = cursor->next;
     }
     return NULL;
 }
+
+
+void*   chunk_header_get_page(chunk_header *self) {
+    chunk_header* cursor = self;
+    while(!(cursor->prev_size == 0)) {
+        cursor = (chunk_header*)((size_t)cursor - cursor->prev_size);
+    }
+    return page_get_start(cursor);
+}
+
 
 void chunk_header_print_metadata(chunk_header *self) {
     ft_log("--- Chunk metadata: ---\n");
@@ -124,7 +134,9 @@ size_t page_get_rounded_size(size_t size) {
 }
 
 void page_print_metadata(page *self) {
+    char** types = (char*[]){"TINY", "SMALL", "LARGE"};
     ft_log("-- Page metadata: --\n");
+    ft_log("Type: %s\n", types[self->type]);
     ft_log("Address: %p\n", self);
     ft_log("Next: %p\n", self->next);
     ft_log("Size: %d\n", self->size);
@@ -134,6 +146,7 @@ void page_print_metadata(page *self) {
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
+    ft_log("ALLOCATED MEMORY\n");
     ft_log("TINY\n");
     page* current = g_state.tiny;
     size_t total_size = 0;
@@ -162,13 +175,12 @@ void show_alloc_mem() {
     }
     ft_log("LARGE Size: %d\n\n", total_size);
 
-    ft_log("FREE\n");
+    ft_log("FREE LISTS\n");
     ft_log("TINY\n");
     free_print_list(g_state.tiny_free);
-    ft_log("SMALL\n");
+    ft_log("\nSMALL\n");
     free_print_list(g_state.small_free);
-
-    ft_log("-- End of show alloc mem! --\n");
+    ft_log("\n-- End of show alloc mem! --\n");
 }
 
 void show_chunk_status(void *ptr) {
