@@ -155,6 +155,13 @@ chunk_header* small_alloc(size_t chunk_size) {
         page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size, SMALL);
+        free_chunk->prev_inuse = true;
+        free_chunk->mmapped = false;
+        free_chunk->prev_size = 0;
+    }
+    chunk_header* next = chunk_header_get_next(free_chunk);
+    if (next != NULL) {
+        next->prev_size = chunk_size;
     }
     return free_chunk;
 }
@@ -167,6 +174,13 @@ chunk_header* tiny_alloc(size_t chunk_size) {
         page* new_page = page_get_new(page_size, TINY);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size, TINY);
+        free_chunk->prev_inuse = true;
+        free_chunk->mmapped = false;
+        free_chunk->prev_size = 0;
+    }
+    chunk_header* next = chunk_header_get_next(free_chunk);
+    if (next != NULL) {
+        next->prev_size = chunk_size;
     }
     return free_chunk;
 }

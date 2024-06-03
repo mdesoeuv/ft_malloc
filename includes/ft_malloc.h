@@ -121,6 +121,7 @@ free_chunk_header*      free_find_size(free_chunk_header* self, size_t size, all
 void                    free_tiny(chunk_header* header);
 void                    free_small(chunk_header* header);
 void                    free_large(chunk_header* header);
+bool                    free_coalesce_chunk(chunk_header* chunk);
 void                    free_print_list(free_chunk_header* self);
 
 

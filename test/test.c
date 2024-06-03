@@ -95,12 +95,13 @@ int main(void)
 		}
 	}
 	ft_putstr("1024 * 1024 bytes allocated\n");
-	// show_alloc_mem();
-	// for (int i = 0; i < 1024; i++) {
-	// 	free(pointers[i]);
-	// }
-	// ft_putstr("1024 * 1024 bytes freed\n");
 	show_alloc_mem();
+	for (int i = 0; i < 1024; i++) {
+		free(pointers[i]);
+	}
+	ft_putstr("1024 * 1024 bytes freed\n");
+	show_alloc_mem();
+
 
 	return 0;
 }
