@@ -18,24 +18,9 @@ void free(void *ptr) {
         free_large(header);
     } else {
         free_coalesce_chunk(header);
-        // free_chunk_insert((free_chunk_header*)header);
     }
 
     ft_log("Memory freed\n");
-}
-
-// TODO: Refactor for code duplication
-void    free_tiny(chunk_header* header) {
-    ft_log("Freeing tiny chunk\n");
-    free_coalesce_chunk(header);
-    free_chunk_insert((free_chunk_header*)header);
-}
-
-
-void    free_small(chunk_header* header) {
-    ft_log("Freeing small chunk\n");
-    free_coalesce_chunk(header);
-    free_chunk_insert((free_chunk_header*)header);
 }
 
 void    free_large(chunk_header* header) {
@@ -64,11 +49,11 @@ void    free_chunk_remove(free_chunk_header* target) {
     
     free_chunk_header** cursor;
 
-    page* pool = (page *)chunk_header_get_page((chunk_header*)target);
+    page* current_page = (page *)chunk_header_get_page((chunk_header*)target);
     
-    ft_log("Removing free chunk from list %d\n", pool->type);
+    ft_log("Removing free chunk from list %d\n", current_page->type);
 
-    if (pool->type == TINY) {
+    if (current_page->type == TINY) {
        cursor=&g_state.tiny_free;
     } else {
         cursor=&g_state.small_free;
@@ -85,7 +70,6 @@ void    free_print_list(free_chunk_header* self) {
         ft_log("Free chunk of size %d, at address: %p\n", chunk_header_get_size((chunk_header*)cursor), cursor);
         cursor = cursor->next;
     }
-    ft_log("End of free list\n");
 }
 
 
@@ -132,9 +116,6 @@ chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
     size_t size = chunk_header_get_size(chunk);
     size_t prev_size = chunk_header_get_size(prev_chunk);
     size_t new_size = size + prev_size;
-    // chunk_header* next = chunk_header_get_next(chunk);
-    // chunk_header_set_prev_inuse(next, false);
-    // next->prev_size = new_size;
     free_chunk_remove((free_chunk_header*)prev_chunk);
     chunk_header_set_size(prev_chunk, new_size);
     ft_log("Coalesced with previous chunk of size %d at address %p\n", prev_size, prev_chunk);
@@ -160,9 +141,6 @@ chunk_header*     free_coalesce_next_chunk(chunk_header* chunk) {
     size_t next_size = chunk_header_get_size(next);
     size_t new_size = size + next_size;
     chunk_header_set_size(chunk, new_size);
-    // chunk_header* next_next = chunk_header_get_next(next);
-    // chunk_header_set_prev_inuse(next_next, false);
-    // next_next->prev_size = new_size;
 
     free_chunk_remove((free_chunk_header*)next);
     ft_log("Coalesced with next chunk of size %d at address %p\n", next_size, next);

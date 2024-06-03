@@ -146,6 +146,7 @@ void page_print_metadata(page *self) {
 
 void show_alloc_mem() {
     ft_log("-- Show alloc mem! --\n");
+    ft_log("ALLOCATED MEMORY\n");
     ft_log("TINY\n");
     page* current = g_state.tiny;
     size_t total_size = 0;
@@ -174,13 +175,12 @@ void show_alloc_mem() {
     }
     ft_log("LARGE Size: %d\n\n", total_size);
 
-    ft_log("FREE\n");
+    ft_log("FREE LISTS\n");
     ft_log("TINY\n");
     free_print_list(g_state.tiny_free);
-    ft_log("SMALL\n");
+    ft_log("\nSMALL\n");
     free_print_list(g_state.small_free);
-
-    ft_log("-- End of show alloc mem! --\n");
+    ft_log("\n-- End of show alloc mem! --\n");
 }
 
 void show_chunk_status(void *ptr) {

@@ -158,15 +158,10 @@ chunk_header* small_alloc(size_t chunk_size) {
     ft_log("Small Allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size, SMALL);
     if (free_chunk == NULL) {
-        // size_t page_size = page_get_rounded_size(chunk_size);
         page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size, SMALL);
-        // free_chunk->prev_inuse = true;
-        // free_chunk->mmapped = false;
-        // free_chunk->prev_size = 0;
     }
-    chunk_header* next = chunk_header_get_next(free_chunk);
     return free_chunk;
 }
 

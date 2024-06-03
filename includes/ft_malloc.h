@@ -121,8 +121,6 @@ void            chunk_header_divide(chunk_header* chunk, size_t new_size, alloca
 void                    free_chunk_insert(free_chunk_header* chunk);
 void                    free_chunk_remove(free_chunk_header* target);
 free_chunk_header*      free_find_size(free_chunk_header* self, size_t size, allocation_type type);
-void                    free_tiny(chunk_header* header);
-void                    free_small(chunk_header* header);
 void                    free_large(chunk_header* header);
 void                    free_coalesce_chunk(chunk_header* chunk);
 chunk_header*           free_coalesce_prev_chunk(chunk_header* chunk);
@@ -142,11 +140,16 @@ void                    free_print_list(free_chunk_header* self);
     ------------------------------
     |        page size            |
     ------------------------------
+    |        allocation type      |
+    ------------------------------
     |        padding (alignment)  |
     ------------------------------
     |        CHUNKS               |
     ------------------------------
 
+    Allocation Type is an enum of TINY, SMALL, LARGE
+    This is need to determine the page pool of chunk
+    during free() operation
 
 */
 
