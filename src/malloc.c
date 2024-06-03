@@ -84,7 +84,6 @@ void *malloc(size_t size) {
         return (NULL);
     }
 
-    allocation_type type = chunk_get_allocation_type(size);
 
     // TODO: ensure that allocation is enough for linked list of freed chunks
 
@@ -92,6 +91,8 @@ void *malloc(size_t size) {
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log("Computed chunk size: %d\n", chunk_size);
 
+    allocation_type type = chunk_get_allocation_type(chunk_size);
+    
     chunk_header* chunk;
 
     // Determine allocation type

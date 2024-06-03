@@ -76,12 +76,13 @@ void* chunk_header_get_free_small(size_t chunk_size) {
 }
 
 void chunk_header_print_metadata(chunk_header *self) {
-    ft_log("Chunk metadata: \n");
-    ft_log("Address: %p\n", self);
-    ft_log("Size: %d\n", chunk_header_get_size(self));
-    ft_log("Arena: %d\n", chunk_header_get_arena(self));
-    ft_log("MMapped: %d\n", chunk_header_get_mmapped(self));
-    ft_log("Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
+    ft_log("--- Chunk metadata: ---\n");
+    ft_log("- Address: %p\n", self);
+    ft_log("- Size: %d\n", chunk_header_get_size(self));
+    ft_log("- Arena: %d\n", chunk_header_get_arena(self));
+    ft_log("- MMapped: %d\n", chunk_header_get_mmapped(self));
+    ft_log("- Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
+    ft_log("--- End of chunk metadata ---\n");
 }
 
 allocation_type chunk_get_allocation_type(size_t size) {
