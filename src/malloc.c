@@ -47,8 +47,10 @@ page* page_get_new(size_t page_size, allocation_type type) {
     new_page->size = page_size;
     new_page->first_chunk = page_get_first_chunk(new_page);
     new_page->next = NULL;
+    new_page->type = type;
 
-    size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT);
+    // TODO: Check if substraction of last chunk_header size does not compromise alignment
+    size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) - sizeof(chunk_header);
     ft_log("Remaining size: %d\n", remaining_size);
     chunk_header* first = new_page->first_chunk;
 
@@ -57,6 +59,10 @@ page* page_get_new(size_t page_size, allocation_type type) {
     chunk_header_set_mmapped(first, false);
     chunk_header_set_prev_inuse(first, true);
     first->prev_size = 0;
+
+    chunk_header* last = chunk_header_get_next(first);
+    chunk_header_set_size(last, 0);
+    last->prev_size = remaining_size;
 
     page_print_metadata(new_page);
 
@@ -156,14 +162,11 @@ chunk_header* small_alloc(size_t chunk_size) {
         page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size, SMALL);
-        free_chunk->prev_inuse = true;
-        free_chunk->mmapped = false;
-        free_chunk->prev_size = 0;
+        // free_chunk->prev_inuse = true;
+        // free_chunk->mmapped = false;
+        // free_chunk->prev_size = 0;
     }
     chunk_header* next = chunk_header_get_next(free_chunk);
-    if (next != NULL) {
-        next->prev_size = chunk_size;
-    }
     return free_chunk;
 }
 
@@ -175,13 +178,7 @@ chunk_header* tiny_alloc(size_t chunk_size) {
         page* new_page = page_get_new(page_size, TINY);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size, TINY);
-        free_chunk->prev_inuse = true;
-        free_chunk->mmapped = false;
-        free_chunk->prev_size = 0;
-    }
-    chunk_header* next = chunk_header_get_next(free_chunk);
-    if (next != NULL) {
-        next->prev_size = chunk_size;
+
     }
     return free_chunk;
 }
@@ -199,6 +196,7 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type t
     // TODO: ensure that new chunk is big enough for metadata
     if (diff < CHUNK_MIN_SIZE) {
         ft_log("New size is too small chunk can't be divided\n");
+        chunk_header_set_prev_inuse(chunk_header_get_next(chunk), true);
         return;
     }
 
@@ -207,9 +205,14 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type t
     chunk_header_set_size(new_chunk, diff);
     chunk_header_set_mmapped(new_chunk, false);
     chunk_header_set_prev_inuse(new_chunk, true);
+    new_chunk->prev_size = new_size;
 
     // Update the size of the current chunk
     chunk_header_set_size(chunk, new_size);
+
+    // Update prev_size of the next chunk
+    chunk_header* next = chunk_header_get_next(new_chunk);
+    next->prev_size = diff;
     
     // Insert the new chunk in the free list
     if (type != LARGE) {

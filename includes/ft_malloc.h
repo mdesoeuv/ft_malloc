@@ -30,6 +30,7 @@ extern int LOG_LEVEL;
 #define SMALL_THRESHOLD      512
 #define LARGE_THRESHOLD      2048
 #define SMALL_PAGE_REQUEST   12 * PAGE_SIZE
+#define TINY_PAGE_REQUEST    13 * PAGE_SIZE
 #define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
 #define PAGE_SIZE            4096
 
@@ -99,6 +100,7 @@ size_t  to_next_multiple(size_t value, size_t alignment);
 
 void    is_aligned(void* ptr);
 
+
 size_t          chunk_header_get_size(chunk_header *self);
 void            chunk_header_set_size(chunk_header *self, size_t size);
 bool            chunk_header_get_arena(chunk_header *self);
@@ -109,6 +111,7 @@ bool            chunk_header_get_prev_inuse(chunk_header *self);
 void            chunk_header_set_prev_inuse(chunk_header *self, bool prev_inuse);
 void*           chunk_header_get_payload(chunk_header *self);
 void*           chunk_header_get_next(chunk_header *self);
+void*           chunk_header_get_page(chunk_header *self);
 void            chunk_header_print_metadata(chunk_header *self);
 allocation_type chunk_get_allocation_type(size_t size);
 void*           payload_to_header(void* payload);
@@ -151,6 +154,7 @@ typedef struct s_page {
     struct s_page*  next;
     chunk_header*   first_chunk;
     size_t          size;
+    allocation_type type;
 } page;
 
 

@@ -46,7 +46,9 @@ int main(void)
 	free(ptr);
 	show_alloc_mem();
 	free(ptr2);
+	show_alloc_mem();
 	free(ptr3);
+	show_alloc_mem();
 	ft_putstr("ptr2 and ptr3 freed\n");
 	ft_putstr("Requesting large block\n");
 	void* ptr4 = malloc(7000 * sizeof(char));

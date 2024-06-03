@@ -75,6 +75,16 @@ void* chunk_header_get_free_small(size_t chunk_size) {
     return NULL;
 }
 
+
+void*   chunk_header_get_page(chunk_header *self) {
+    chunk_header* cursor = self;
+    while(!(cursor->prev_size == 0)) {
+        cursor = (chunk_header*)((size_t)cursor - cursor->prev_size);
+    }
+    return page_get_start(cursor);
+}
+
+
 void chunk_header_print_metadata(chunk_header *self) {
     ft_log("--- Chunk metadata: ---\n");
     ft_log("- Address: %p\n", self);
@@ -124,7 +134,9 @@ size_t page_get_rounded_size(size_t size) {
 }
 
 void page_print_metadata(page *self) {
+    char** types = (char*[]){"TINY", "SMALL", "LARGE"};
     ft_log("-- Page metadata: --\n");
+    ft_log("Type: %s\n", types[self->type]);
     ft_log("Address: %p\n", self);
     ft_log("Next: %p\n", self->next);
     ft_log("Size: %d\n", self->size);

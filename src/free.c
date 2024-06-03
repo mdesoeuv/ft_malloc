@@ -16,10 +16,9 @@ void free(void *ptr) {
 
     if (chunk_header_get_mmapped(header)) {
         free_large(header);
-    } else if (size < SMALL_THRESHOLD) {
-        free_tiny(header);
     } else {
-        free_small(header);
+        free_coalesce_chunk(header);
+        // free_chunk_insert((free_chunk_header*)header);
     }
 
     ft_log("Memory freed\n");
@@ -46,15 +45,16 @@ void    free_large(chunk_header* header) {
 }
 
 void    free_chunk_insert(free_chunk_header* chunk) {
-    allocation_type type = chunk_get_allocation_type(chunk_header_get_size((chunk_header*)chunk));
     free_chunk_header** list;
-    
-    if (type == TINY) {
+    page* pool = (page *)chunk_header_get_page((chunk_header*)chunk);
+    if (pool->type == TINY) {
         list = &g_state.tiny_free;        
     }
     else {
         list = &g_state.small_free;
     }
+
+    ft_log("Inserting free chunk in list %d\n", pool->type);
     
     chunk->next = *list;
     *list = chunk;
@@ -63,10 +63,12 @@ void    free_chunk_insert(free_chunk_header* chunk) {
 void    free_chunk_remove(free_chunk_header* target) {
     
     free_chunk_header** cursor;
+
+    page* pool = (page *)chunk_header_get_page((chunk_header*)target);
     
-    allocation_type type = chunk_get_allocation_type(chunk_header_get_size((chunk_header*)target));
-    
-    if (type == TINY) {
+    ft_log("Removing free chunk from list %d\n", pool->type);
+
+    if (pool->type == TINY) {
        cursor=&g_state.tiny_free;
     } else {
         cursor=&g_state.small_free;
@@ -110,25 +112,33 @@ void    free_coalesce_chunk(chunk_header* chunk) {
     chunk_header* new = free_coalesce_prev_chunk(chunk);
     chunk_header* next = chunk_header_get_next(new);
     chunk_header_set_prev_inuse(next, false);
-    next->prev_size = chunk_header_get_size(chunk);
+    next->prev_size = chunk_header_get_size(new);
+	free_chunk_insert((free_chunk_header*)new);
 }
 
 
 chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
     ft_log("Coalesce previous chunk with chunk of size %d at address %p\n", chunk_header_get_size(chunk), chunk);
     chunk_header* prev_chunk = (chunk_header*)((size_t)chunk - chunk->prev_size);
-    if (chunk_header_get_prev_inuse(prev_chunk) || chunk->prev_size == 0) {
-        ft_log("Previous chunk is in use or size is 0, cannot coalesce\n");
+    
+    if (chunk->prev_size == 0) {
+        ft_log("Previous chunk size is 0 => Start of the page: cannot coalesce\n");
+        return chunk;
+    }
+    if (chunk_header_get_prev_inuse(chunk)) {
+        ft_log("Previous chunk is in use, cannot coalesce\n");
         return chunk;
     }
     size_t size = chunk_header_get_size(chunk);
-    size_t new_size = size + chunk->prev_size;
-    chunk_header_set_size(prev_chunk, new_size);
+    size_t prev_size = chunk_header_get_size(prev_chunk);
+    size_t new_size = size + prev_size;
     // chunk_header* next = chunk_header_get_next(chunk);
     // chunk_header_set_prev_inuse(next, false);
     // next->prev_size = new_size;
     free_chunk_remove((free_chunk_header*)prev_chunk);
-    ft_log("Coalesced with previous chunk of size %d at address %p\n", chunk->prev_size, prev_chunk);
+    chunk_header_set_size(prev_chunk, new_size);
+    ft_log("Coalesced with previous chunk of size %d at address %p\n", prev_size, prev_chunk);
+    ft_log("Coalesced chunk new size: %d\n", new_size);
     return prev_chunk;
 }
 
@@ -136,7 +146,13 @@ chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
 chunk_header*     free_coalesce_next_chunk(chunk_header* chunk) {
     ft_log("Coalesce next chunk with chunk of size %d at address %p\n", chunk_header_get_size(chunk), chunk);
     chunk_header* next = chunk_header_get_next(chunk);
-    if (!next || chunk_header_get_prev_inuse(next)) {
+    chunk_header* next_next = chunk_header_get_next(next);
+    if (!next) {
+        ft_log("Next chunk does not exist, cannot coalesce\n");
+        return chunk;
+    }        
+        
+    if (chunk_header_get_prev_inuse(next_next)) {
         ft_log("Next chunk is in use or does not exist, cannot coalesce\n");
         return chunk;
     }
@@ -152,3 +168,4 @@ chunk_header*     free_coalesce_next_chunk(chunk_header* chunk) {
     ft_log("Coalesced with next chunk of size %d at address %p\n", next_size, next);
     return chunk;
 }
+
