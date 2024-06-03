@@ -28,25 +28,15 @@ void free(void *ptr) {
 // TODO: Refactor for code duplication
 void    free_tiny(chunk_header* header) {
     ft_log("Freeing tiny chunk\n");
-    if (!free_coalesce_chunk(header)) {
-        free_chunk_insert(&g_state.tiny_free, (free_chunk_header*)header);
-    }
-    chunk_header* next = chunk_header_get_next(header);
-    if (next != NULL) {
-        chunk_header_set_prev_inuse(next, false);
-    }
+    free_coalesce_chunk(header);
+    free_chunk_insert((free_chunk_header*)header);
 }
 
 
 void    free_small(chunk_header* header) {
     ft_log("Freeing small chunk\n");
-    if (!free_coalesce_chunk(header)) {
-        free_chunk_insert(&g_state.small_free, (free_chunk_header*)header);
-    }
-    chunk_header* next = chunk_header_get_next(header);
-    if (next != NULL) {
-        chunk_header_set_prev_inuse(next, false);
-    }
+    free_coalesce_chunk(header);
+    free_chunk_insert((free_chunk_header*)header);
 }
 
 void    free_large(chunk_header* header) {
@@ -55,13 +45,32 @@ void    free_large(chunk_header* header) {
     page_remove(&g_state.large, start);
 }
 
-void    free_chunk_insert(free_chunk_header** self, free_chunk_header* chunk) {
-    chunk->next = *self;
-    *self = chunk;
+void    free_chunk_insert(free_chunk_header* chunk) {
+    allocation_type type = chunk_get_allocation_type(chunk_header_get_size((chunk_header*)chunk));
+    free_chunk_header** list;
+    
+    if (type == TINY) {
+        list = &g_state.tiny_free;        
+    }
+    else {
+        list = &g_state.small_free;
+    }
+    
+    chunk->next = *list;
+    *list = chunk;
 }
 
-void    free_chunk_remove(free_chunk_header** self, free_chunk_header* target) {
-    free_chunk_header** cursor = self;
+void    free_chunk_remove(free_chunk_header* target) {
+    
+    free_chunk_header** cursor;
+    
+    allocation_type type = chunk_get_allocation_type(chunk_header_get_size((chunk_header*)target));
+    
+    if (type == TINY) {
+       cursor=&g_state.tiny_free;
+    } else {
+        cursor=&g_state.small_free;
+    }
     while (*cursor != target) {
         cursor = &(*cursor)->next;
     }
@@ -80,18 +89,12 @@ void    free_print_list(free_chunk_header* self) {
 
 free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, allocation_type type) {
     free_chunk_header* cursor = self;
-    free_chunk_header** list;
     ft_log("Searching for chunk of size %d in list %d\n", size, type);
-    if (type == TINY) {
-        list = &g_state.tiny_free;
-    } else {
-        list = &g_state.small_free;
-    }
     while (cursor != NULL) {
         if (chunk_header_get_size((chunk_header*)cursor) >= size + sizeof(size_t)) {
             ft_log("Found chunk of size %d at address: %p\n", size, cursor);
             chunk_header_divide((chunk_header*)cursor, size, type);
-            free_chunk_remove(list, cursor);
+            free_chunk_remove(cursor);
             return cursor;
         }
         cursor = cursor->next;
@@ -101,22 +104,51 @@ free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, alloc
 }
 
 
-bool    free_coalesce_chunk(chunk_header* chunk) {
-    if (chunk_header_get_prev_inuse(chunk)) {
-        ft_log("Previous chunk is in use, cannot coalesce previous chunk.\n");
-        return false;
-    }
-    size_t size = chunk_header_get_size(chunk);
-    size_t prev_size = chunk->prev_size;
-    chunk_header* prev = (chunk_header*)((size_t)chunk - prev_size);
-    size_t new_size = size + prev_size;
-    ft_log("Coalesce chunk of size %d at address: %p with previous chunk of size %d at address: %p\n", size, chunk, prev_size, prev);
-    ft_log("New size: %d\n", new_size);
-    chunk_header_set_size(prev, new_size);
-    chunk_header* next = chunk_header_get_next(prev);
-    if (next != NULL) {
-        next->prev_size = new_size;
-    }
-    return true;
+void    free_coalesce_chunk(chunk_header* chunk) {
+
+    free_coalesce_next_chunk(chunk);
+    chunk_header* new = free_coalesce_prev_chunk(chunk);
+    chunk_header* next = chunk_header_get_next(new);
+    chunk_header_set_prev_inuse(next, false);
+    next->prev_size = chunk_header_get_size(chunk);
 }
 
+
+chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
+    ft_log("Coalesce previous chunk with chunk of size %d at address %p\n", chunk_header_get_size(chunk), chunk);
+    chunk_header* prev_chunk = (chunk_header*)((size_t)chunk - chunk->prev_size);
+    if (chunk_header_get_prev_inuse(prev_chunk) || chunk->prev_size == 0) {
+        ft_log("Previous chunk is in use or size is 0, cannot coalesce\n");
+        return chunk;
+    }
+    size_t size = chunk_header_get_size(chunk);
+    size_t new_size = size + chunk->prev_size;
+    chunk_header_set_size(prev_chunk, new_size);
+    // chunk_header* next = chunk_header_get_next(chunk);
+    // chunk_header_set_prev_inuse(next, false);
+    // next->prev_size = new_size;
+    free_chunk_remove((free_chunk_header*)prev_chunk);
+    ft_log("Coalesced with previous chunk of size %d at address %p\n", chunk->prev_size, prev_chunk);
+    return prev_chunk;
+}
+
+
+chunk_header*     free_coalesce_next_chunk(chunk_header* chunk) {
+    ft_log("Coalesce next chunk with chunk of size %d at address %p\n", chunk_header_get_size(chunk), chunk);
+    chunk_header* next = chunk_header_get_next(chunk);
+    if (!next || chunk_header_get_prev_inuse(next)) {
+        ft_log("Next chunk is in use or does not exist, cannot coalesce\n");
+        return chunk;
+    }
+    size_t size = chunk_header_get_size(chunk);
+    size_t next_size = chunk_header_get_size(next);
+    size_t new_size = size + next_size;
+    chunk_header_set_size(chunk, new_size);
+    // chunk_header* next_next = chunk_header_get_next(next);
+    // chunk_header_set_prev_inuse(next_next, false);
+    // next_next->prev_size = new_size;
+
+    free_chunk_remove((free_chunk_header*)next);
+    ft_log("Coalesced with next chunk of size %d at address %p\n", next_size, next);
+    return chunk;
+}
