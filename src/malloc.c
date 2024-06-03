@@ -56,6 +56,7 @@ page* page_get_new(size_t page_size, allocation_type type) {
     chunk_header_set_size(first, remaining_size);
     chunk_header_set_mmapped(first, false);
     chunk_header_set_prev_inuse(first, true);
+    chunk_header_set_prev_size(first, 0);
 
     page_print_metadata(new_page);
 
