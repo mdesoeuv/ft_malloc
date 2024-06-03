@@ -81,6 +81,10 @@ typedef struct s_chunk_header {
     |        payload             |
     ------------------------------
 
+    A: arena
+    M: mmapped
+    P: prev_inuse
+
 */
 typedef struct s_free_chunk_header {
     chunk_header            header;
