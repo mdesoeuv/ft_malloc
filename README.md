@@ -12,7 +12,7 @@ The goal is to understand how memory allocation works at a lower level and to be
 ### Allowed Functions
 
 - libraries :
-    - libft (42)
+    - libft + libft_printf (42)
     - libpthread 
 
 - functions :
@@ -27,7 +27,7 @@ The goal is to understand how memory allocation works at a lower level and to be
 - Makefile must be provided
     - The Makefile will have to create a symbolic link libft_malloc.so pointing to libft_malloc_$HOSTTYPE.so so for example : `libft_malloc.so -> libft_malloc_intel-mac.so`
 - One global variable to manage allocations and one for the threadsafe
--  With performance in mind, the number of calls to `mmap()` and `munmap()` must be limited : Some memory zones must be "pre-allocated" to store “small” and “medium” malloc
+- With performance in mind, the number of calls to `mmap()` and `munmap()` must be limited : Some memory zones must be "pre-allocated" to store “small” and “medium” malloc
 - The size of these zones must be a multiple of `getpagesize()`
 - Each zone must contain at least 100 allocations.
     - “TINY” mallocs, from 1 to n bytes, will be stored in N bytes big zones.
@@ -35,7 +35,7 @@ The goal is to understand how memory allocation works at a lower level and to be
     - “LARGE” mallocs, from (m+1) bytes and more, will be stored out of zone, which simply means with mmap(), they will be in a zone on their own.
 - The size of n, m, N and M must be defined to find a good compromise between speed (saving on system recall) and saving memory.
 
-- The memory given by our malloc must be aligned (on a multiple of the largest component) -> addresses must be a multiple of the requested size (1, 2, 4 or 8 bytes)
+- The memory given by our malloc must be aligned (on a multiple of the largest component) -> addresses must be a multiple of a power of 2 (1, 2, 4 or 8 bytes)
 
 ### Maximum Overhead
 
@@ -88,13 +88,14 @@ The simplified chunk-allocation strategy for small chunks is this:
 
 ## Bins
 
+
+// TODO: Rework this part
+
 ### Types
 
-- fast
-- unsorted
-- small
-- large
-- tcache
+- `TINY` : 16 - 512 bytes
+- `SMALL` : 512 -  bytes
+- `LARGE` :   bytes
 
 ### Fast Bins
 
@@ -134,6 +135,8 @@ The log level is set to `DEBUG` if the environment variable `FT_MALLOC_LOG_LEVEL
 
 ## Notions
 
+
+// TODO: Extend glossary 
 - **Arena**: A structure that is shared among one or more threads which contains references to one or more heaps, as well as linked lists of chunks within those heaps which are "free". Threads assigned to each arena will allocate memory from that arena's free lists.
 - **Heap**: A contiguous region of memory that is subdivided into chunks to be allocated. Each heap belongs to exactly one arena.
 - **Chunk**: A small range of memory that can be allocated (owned by the application), freed (owned by glibc), or combined with adjacent chunks into larger ranges. Note that a chunk is a wrapper around the block of memory that is given to the application. Each chunk exists in one heap and belongs to one arena.
@@ -141,6 +144,7 @@ The log level is set to `DEBUG` if the environment variable `FT_MALLOC_LOG_LEVEL
 
 - **Alignment**: The address of an N-bytes value must be divisible by N. For a structure it must be divisible by the largest component of the structure.
 
+// TODO: Verify this information with last version of datastructure
 - minimum size of a chunk is `4*sizeof(void*)`
 
 ## Resources
