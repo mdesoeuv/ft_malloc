@@ -85,10 +85,15 @@ void*   chunk_header_get_page(chunk_header *self) {
 }
 
 
-bool    chunk_header_is_full_page(chunk_header *self) {
+bool    chunk_header_is_page_free(chunk_header *self) {
     page* current_page = (page*)chunk_header_get_page(self);
     size_t size = chunk_header_get_size(self);
-    if (chunk_header_get_size(self) + sizeof(page) + sizeof(size_t) == current_page->size) {
+    if (chunk_header_get_size(self) + sizeof(page) + sizeof(chunk_header) == current_page->size) {
+        if (current_page->type == TINY) {
+            g_state.free_tiny_page_count++;
+        } else if (current_page->type == SMALL) {
+            g_state.free_small_page_count++;
+        }
         return true;
     }
     return false;

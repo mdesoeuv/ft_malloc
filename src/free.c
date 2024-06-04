@@ -98,13 +98,16 @@ void    free_coalesce_chunk(chunk_header* chunk) {
     if (chunk_header_is_page_free(new)) {
         page* current_page = (page*)chunk_header_get_page(new);
         ft_log_trace("[free] page is free, removing from list %d\n", current_page->type);
+        free_chunk_remove((free_chunk_header*)new);
         if (current_page->type == TINY) {
             page_remove(&g_state.tiny, current_page);
             g_state.tiny_page_count--;
+            g_state.free_tiny_page_count--;
         }
         else {
             page_remove(&g_state.small, current_page);
             g_state.small_page_count--;
+            g_state.free_small_page_count--;
         }
     }
 }
