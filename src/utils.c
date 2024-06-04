@@ -113,7 +113,7 @@ bool    page_remove_if_extra(page* self) {
         ft_log_trace("[free] free tiny pages (%d/%d), not removing extra tiny page\n", g_state.free_tiny_page_count, g_state.tiny_page_count);
     }
 
-    if (self->type == SMALL && g_state.free_small_page_count > 1 &&((float)g_state.free_small_page_count >= ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
+    if (self->type == SMALL && g_state.free_small_page_count > 1 &&((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free small pages (%d/%d), removing extra small page\n", g_state.free_small_page_count, g_state.small_page_count);
         page_remove(&g_state.small, self);
         g_state.free_small_page_count--;
