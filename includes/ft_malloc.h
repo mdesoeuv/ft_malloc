@@ -18,9 +18,28 @@ void    show_chunk_status(void *ptr);
 
 extern int LOG_LEVEL;
 
-#define ft_log(format, ...) \
+typedef enum e_log_level {
+    INFO,
+    DEBUG,
+} log_level;
+
+#define ft_log_info(format, ...) \
     do { \
-        if (LOG_LEVEL) { \
+        if (LOG_LEVEL >= INFO) { \
+            ft_printf(format, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
+#define ft_log_debug(format, ...) \
+    do { \
+        if (LOG_LEVEL > INFO) { \
+            ft_printf(format, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
+#define ft_log_error(format, ...) \
+    do { \
+        if (LOG_LEVEL >= INFO) { \
             ft_printf(format, ##__VA_ARGS__); \
         } \
     } while(0)

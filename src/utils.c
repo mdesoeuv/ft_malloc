@@ -13,7 +13,7 @@ size_t to_next_multiple(size_t value, size_t alignment) {
 
 void is_aligned(void* ptr) {
     if (((size_t)ptr & (ALLOCATION_ALIGNMENT - 1)) != 0) {
-        ft_log("Pointer is not aligned\n");        
+        ft_log_error("[malloc] ERROR: pointer is not aligned\n");        
     }
 }
 
@@ -24,8 +24,8 @@ size_t chunk_header_get_size(chunk_header *self) {
 void chunk_header_set_size(chunk_header *self, size_t size) {
     // Check size is a multiple of 8
     if ((size >> 3 << 3) != size) {
-        ft_log("Size is not a multiple of 8\n");
-        exit(1);
+        ft_log_error("[malloc] ERROR: chunk size is not a multiple of 8\n");
+        return;
     }
     self->word_count = size / 8;
 }
@@ -86,13 +86,13 @@ void*   chunk_header_get_page(chunk_header *self) {
 
 
 void chunk_header_print_metadata(chunk_header *self) {
-    ft_log("--- Chunk metadata: ---\n");
-    ft_log("- Address: %p\n", self);
-    ft_log("- Size: %d\n", chunk_header_get_size(self));
-    ft_log("- Arena: %d\n", chunk_header_get_arena(self));
-    ft_log("- MMapped: %d\n", chunk_header_get_mmapped(self));
-    ft_log("- Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
-    ft_log("--- End of chunk metadata ---\n");
+    ft_log_debug("--- Chunk metadata: ---\n");
+    ft_log_debug("- Address: %p\n", self);
+    ft_log_debug("- Size: %d\n", chunk_header_get_size(self));
+    ft_log_debug("- Arena: %d\n", chunk_header_get_arena(self));
+    ft_log_debug("- MMapped: %d\n", chunk_header_get_mmapped(self));
+    ft_log_debug("- Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
+    ft_log_debug("--- End of chunk metadata ---\n");
 }
 
 allocation_type chunk_get_allocation_type(size_t size) {
@@ -135,19 +135,19 @@ size_t page_get_rounded_size(size_t size) {
 
 void page_print_metadata(page *self) {
     char** types = (char*[]){"TINY", "SMALL", "LARGE"};
-    ft_log("-- Page metadata: --\n");
-    ft_log("Type: %s\n", types[self->type]);
-    ft_log("Address: %p\n", self);
-    ft_log("Next: %p\n", self->next);
-    ft_log("Size: %d\n", self->size);
-    ft_log("First free chunk: %p\n", self->first_chunk);
-    ft_log("-- End of page metadata --\n");
+    ft_log_debug("-- Page metadata: --\n");
+    ft_log_debug("Type: %s\n", types[self->type]);
+    ft_log_debug("Address: %p\n", self);
+    ft_log_debug("Next: %p\n", self->next);
+    ft_log_debug("Size: %d\n", self->size);
+    ft_log_debug("First free chunk: %p\n", self->first_chunk);
+    ft_log_debug("-- End of page metadata --\n");
 }
 
 void show_alloc_mem() {
-    ft_log("-- Show alloc mem! --\n");
-    ft_log("ALLOCATED MEMORY\n");
-    ft_log("TINY\n");
+    ft_log_debug("-- Show alloc mem! --\n");
+    ft_log_debug("ALLOCATED MEMORY\n");
+    ft_log_debug("TINY\n");
     page* current = g_state.tiny;
     size_t total_size = 0;
     while (current) {
@@ -155,8 +155,8 @@ void show_alloc_mem() {
         total_size += current->size;
         current = current->next;
     }
-    ft_log("TINY Size: %d\n\n", total_size);
-    ft_log("SMALL\n");
+    ft_log_debug("TINY Size: %d\n\n", total_size);
+    ft_log_debug("SMALL\n");
     current = g_state.small;
     total_size = 0;
     while (current) {
@@ -164,8 +164,8 @@ void show_alloc_mem() {
         total_size += current->size;
         current = current->next;
     }
-    ft_log("SMALL Size: %d\n\n", total_size);
-    ft_log("LARGE\n");
+    ft_log_debug("SMALL Size: %d\n\n", total_size);
+    ft_log_debug("LARGE\n");
     current = g_state.large;
     total_size = 0;
     while (current) {
@@ -173,25 +173,25 @@ void show_alloc_mem() {
         total_size += current->size;
         current = current->next;
     }
-    ft_log("LARGE Size: %d\n\n", total_size);
+    ft_log_debug("LARGE Size: %d\n\n", total_size);
 
-    ft_log("FREE LISTS\n");
-    ft_log("TINY\n");
+    ft_log_debug("FREE LISTS\n");
+    ft_log_debug("TINY\n");
     free_print_list(g_state.tiny_free);
-    ft_log("\nSMALL\n");
+    ft_log_debug("\nSMALL\n");
     free_print_list(g_state.small_free);
-    ft_log("\n-- End of show alloc mem! --\n");
+    ft_log_debug("\n-- End of show alloc mem! --\n");
 }
 
 void show_chunk_status(void *ptr) {
 
-    ft_log("--------------------\n");
-    ft_log("Memory block status: \n");
+    ft_log_debug("--------------------\n");
+    ft_log_debug("Memory block status: \n");
     chunk_header* header = payload_to_header(ptr);
-    ft_log("Size: %d\n", chunk_header_get_size(header));
-    ft_log("Allocated: %d\n", chunk_header_get_arena(header));
-    ft_log("Header address: %p\n", header);
-    ft_log("Payload address: %p\n", ptr);
-    ft_log("Next block header: %p\n", (size_t)header + chunk_header_get_size(header));
-    ft_log("--------------------\n");
+    ft_log_debug("Size: %d\n", chunk_header_get_size(header));
+    ft_log_debug("Allocated: %d\n", chunk_header_get_arena(header));
+    ft_log_debug("Header address: %p\n", header);
+    ft_log_debug("Payload address: %p\n", ptr);
+    ft_log_debug("Next block header: %p\n", (size_t)header + chunk_header_get_size(header));
+    ft_log_debug("--------------------\n");
 }

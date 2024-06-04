@@ -1,13 +1,13 @@
 #include "../includes/ft_malloc.h"
 
 void *realloc(void *ptr, size_t size) {
-    ft_log("Realloc! Requested size: %d\n", size);
+    ft_log_debug("Realloc! Requested size: %d\n", size);
     if (!ptr) {
-        ft_log("Null pointer: the address was not previously allocated.\n");
+        ft_log_debug("Null pointer: the address was not previously allocated.\n");
         return malloc(size);
     }
     if (size == 0) {
-        ft_log("Size is 0: freeing memory\n");
+        ft_log_debug("Size is 0: freeing memory\n");
         free(ptr);
         return (NULL);
     }
@@ -17,12 +17,12 @@ void *realloc(void *ptr, size_t size) {
     // Retrieve the chunk metadata
     chunk_header* header = payload_to_header(ptr);
     size_t old_size = chunk_header_get_size(header);
-    ft_log("Old size: %d\n", old_size);
-    ft_log("New size: %d\n", size);
+    ft_log_debug("Old size: %d\n", old_size);
+    ft_log_debug("New size: %d\n", size);
 
     // Compute the new size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
-    ft_log("Computed chunk size: %d\n", chunk_size);
+    ft_log_debug("Computed chunk size: %d\n", chunk_size);
 
 
 
@@ -30,15 +30,15 @@ void *realloc(void *ptr, size_t size) {
     
     switch(type) {
         case TINY:
-            ft_log("Tiny Allocation\n");
+            ft_log_debug("Tiny Allocation\n");
             chunk = tiny_alloc(chunk_size);
             break;
         case SMALL:
-            ft_log("Small Allocation\n");
+            ft_log_debug("Small Allocation\n");
             chunk = small_alloc(chunk_size);
             break;
         case LARGE:
-            ft_log("Large Allocation\n");
+            ft_log_debug("Large Allocation\n");
             chunk = large_alloc(chunk_size);
             break;
     }
@@ -47,9 +47,9 @@ void *realloc(void *ptr, size_t size) {
 
     // Copy the data from the old block to the new block
     size_t min_size = old_size < chunk_size ? old_size : chunk_size;
-    ft_log("Copying %d bytes\n", min_size - sizeof(chunk_header));
+    ft_log_debug("Copying %d bytes\n", min_size - sizeof(chunk_header));
     ft_memcpy(chunk_header_get_payload(chunk), ptr, min_size - sizeof(chunk_header));
-    ft_log("Data copied\n");
+    ft_log_debug("Data copied\n");
     free(ptr);
     return chunk_header_get_payload(chunk);
 }

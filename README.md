@@ -131,7 +131,9 @@ make && ./preload_wapper.sh cat
 
 ### Debug
 
-The log level is set to `DEBUG` if the environment variable `FT_MALLOC_LOG_LEVEL` is set to `1`
+The log level is defined with the environment variable `M_LOGLEVEL`
+- `DEBUG`
+- `INFO`
 
 ## Notions
 
