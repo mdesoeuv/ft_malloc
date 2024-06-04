@@ -23,6 +23,7 @@ void free(void *ptr) {
 void    free_large(chunk_header* header) {
     page* start = page_get_start(header);
     page_remove(&g_state.large, start);
+    g_state.large_page_count--;
     ft_log_debug("[free] large chunk unmmaped\n");
 }
 
@@ -94,6 +95,18 @@ void    free_coalesce_chunk(chunk_header* chunk) {
     chunk_header_set_prev_inuse(next, false);
     next->prev_size = chunk_header_get_size(new);
 	free_chunk_insert((free_chunk_header*)new);
+    if (chunk_header_is_page_free(new)) {
+        page* current_page = (page*)chunk_header_get_page(new);
+        ft_log_trace("[free] page is free, removing from list %d\n", current_page->type);
+        if (current_page->type == TINY) {
+            page_remove(&g_state.tiny, current_page);
+            g_state.tiny_page_count--;
+        }
+        else {
+            page_remove(&g_state.small, current_page);
+            g_state.small_page_count--;
+        }
+    }
 }
 
 

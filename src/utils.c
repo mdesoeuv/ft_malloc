@@ -85,6 +85,16 @@ void*   chunk_header_get_page(chunk_header *self) {
 }
 
 
+bool    chunk_header_is_full_page(chunk_header *self) {
+    page* current_page = (page*)chunk_header_get_page(self);
+    size_t size = chunk_header_get_size(self);
+    if (chunk_header_get_size(self) + sizeof(page) + sizeof(size_t) == current_page->size) {
+        return true;
+    }
+    return false;
+}
+
+
 void chunk_header_print_metadata(chunk_header *self) {
     ft_log_trace("--- Chunk metadata: ---\n");
     ft_log_trace("- Address: %p\n", self);
@@ -194,4 +204,22 @@ void show_chunk_status(void *ptr) {
     ft_log_debug("Payload address: %p\n", ptr);
     ft_log_debug("Next block header: %p\n", (size_t)header + chunk_header_get_size(header));
     ft_log_debug("--------------------\n");
+}
+
+void show_state_status() {
+    ft_log_debug("State status: \n");
+    ft_log_debug("TINY\n");
+    ft_log_debug("Allocated pages: %d\n", g_state.tiny_page_count);
+    ft_log_debug("Free pages: %d\n", g_state.free_tiny_page_count);
+    ft_log_debug("SMALL\n");
+    ft_log_debug("Allocated pages: %d\n", g_state.small_page_count);
+    ft_log_debug("Free pages: %d\n", g_state.free_small_page_count);
+    ft_log_debug("LARGE\n");
+    ft_log_debug("Allocated pages: %d\n", g_state.large_page_count);
+}
+
+void print_header_sizes() {
+    ft_log_debug("Page Header size: %d\n", sizeof(page));
+    ft_log_debug("Chunk Header size: %d\n", sizeof(chunk_header));
+    ft_log_debug("Free Chunk Header size: %d\n", sizeof(free_chunk_header));
 }

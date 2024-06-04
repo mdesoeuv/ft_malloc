@@ -212,6 +212,11 @@ typedef struct s_mstate {
     page*  large;
     free_chunk_header* tiny_free;
     free_chunk_header* small_free;
+    size_t free_tiny_page_count;
+    size_t free_small_page_count;
+    size_t tiny_page_count;
+    size_t small_page_count;
+    size_t large_page_count;
 } mstate;
 
 void        page_insert(page** self, page* new);
@@ -222,5 +227,10 @@ chunk_header* large_alloc(size_t chunk_size);
 chunk_header* small_alloc(size_t chunk_size);
 chunk_header* tiny_alloc(size_t chunk_size);
 
+
+/* Print status functions */
+void    show_alloc_mem();
+void    show_state_status();
+void    print_header_sizes();
 
 #endif
