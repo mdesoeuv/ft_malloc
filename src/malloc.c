@@ -3,7 +3,7 @@
 #include "../includes/ft_malloc.h"
 
 int LOG_LEVEL = -1;
-mstate g_state = {NULL, NULL, NULL, NULL, NULL};
+mstate g_state = {NULL, NULL, NULL, NULL, NULL, 0, 0, 0};
 
 
 void initialize_log_level() __attribute__((constructor));
@@ -150,6 +150,7 @@ void page_remove(page** self, page* target) {
         ft_log_error("[malloc] ERROR unmaping page\n");
     }
 }
+
 
 chunk_header* large_alloc(size_t chunk_size) {
     ft_log_debug("[malloc] large allocation\n");
