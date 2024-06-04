@@ -3,7 +3,7 @@
 #include "../includes/ft_malloc.h"
 
 int LOG_LEVEL = -1;
-mstate g_state = {NULL, NULL, NULL, NULL, NULL, 0, 0, 0};
+mstate g_state = {NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0};
 
 
 void initialize_log_level() __attribute__((constructor));
@@ -149,6 +149,15 @@ void page_remove(page** self, page* target) {
     if(munmap((void*)target, target->size)) {
         ft_log_error("[malloc] ERROR unmaping page\n");
     }
+}
+
+int page_count(page* self) {
+    int count = 0;
+    while (self != NULL) {
+        count++;
+        self = self->next;
+    }
+    return count;
 }
 
 

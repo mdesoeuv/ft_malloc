@@ -76,6 +76,7 @@ free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, alloc
     while (cursor != NULL) {
         if (chunk_header_get_size((chunk_header*)cursor) >= size + sizeof(size_t)) {
             ft_log_debug("[malloc] found chunk of size %d at address: %p\n", size, cursor);
+            chunk_header_alloc_update_free_pages((chunk_header*)cursor);
             chunk_header_divide((chunk_header*)cursor, size, type);
             free_chunk_remove(cursor);
             return cursor;
@@ -94,7 +95,7 @@ void    free_coalesce_chunk(chunk_header* chunk) {
     chunk_header* next = chunk_header_get_next(new);
     chunk_header_set_prev_inuse(next, false);
     next->prev_size = chunk_header_get_size(new);
-    if (page_update_free_pages(new)) {
+    if (chunk_header_free_update_free_pages(new)) {
         page* current_page = (page*)chunk_header_get_page(new);
         ft_log_trace("[free] page is free in list %d\n", current_page->type);
         if (page_remove_if_extra(current_page)) {
