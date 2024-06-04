@@ -23,7 +23,9 @@ void test_free_null() {
 
 int main(void)
 {
+	print_header_sizes();
 	test_free_null();
+
 	void* ptr = malloc(12 * sizeof(char));
 	if (!ptr) {
 		ft_putstr("Malloc failed\n");
@@ -104,11 +106,12 @@ int main(void)
 	ft_putstr("1024 * 1024 bytes allocated\n");
 	show_alloc_mem();
 	for (int i = 0; i < 1024; i++) {
+		ft_printf("free ptr[%d]\n", i);
 		free(pointers[i]);
 	}
 	ft_putstr("1024 * 1024 bytes freed\n");
 	show_alloc_mem();
-
+	show_state_status();
 
 	return 0;
 }

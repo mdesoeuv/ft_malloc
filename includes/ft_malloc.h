@@ -60,6 +60,7 @@ typedef enum e_log_level {
 #define TINY_PAGE_REQUEST    13 * PAGE_SIZE
 #define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
 #define PAGE_SIZE            4096
+#define FREE_PAGE_RATIO      0.5 // must be positive
 
 typedef enum e_allocation_type {
     TINY,
@@ -144,7 +145,8 @@ allocation_type chunk_get_allocation_type(size_t size);
 void*           payload_to_header(void* payload);
 void*           chunk_header_get_free_small(size_t chunk_size);
 void            chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type type);
-
+bool            chunk_header_free_update_free_pages(chunk_header *self);
+bool            chunk_header_alloc_update_free_pages(chunk_header *self);
 void                    free_chunk_insert(free_chunk_header* chunk);
 void                    free_chunk_remove(free_chunk_header* target);
 free_chunk_header*      free_find_size(free_chunk_header* self, size_t size, allocation_type type);
@@ -212,15 +214,27 @@ typedef struct s_mstate {
     page*  large;
     free_chunk_header* tiny_free;
     free_chunk_header* small_free;
+    size_t free_tiny_page_count;
+    size_t free_small_page_count;
+    size_t tiny_page_count;
+    size_t small_page_count;
+    size_t large_page_count;
 } mstate;
 
 void        page_insert(page** self, page* new);
 void        page_remove(page** self, page* target);
+bool        page_remove_if_extra(page* self);
 size_t      page_get_rounded_size(size_t size);
+int         page_count(page* self);
 
 chunk_header* large_alloc(size_t chunk_size);
 chunk_header* small_alloc(size_t chunk_size);
 chunk_header* tiny_alloc(size_t chunk_size);
 
+
+/* Print status functions */
+void    show_alloc_mem();
+void    show_state_status();
+void    print_header_sizes();
 
 #endif

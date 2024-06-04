@@ -85,6 +85,64 @@ void*   chunk_header_get_page(chunk_header *self) {
 }
 
 
+bool    chunk_header_free_update_free_pages(chunk_header *self) {
+    page* current_page = (page*)chunk_header_get_page(self);
+    if (chunk_header_get_size(self) + sizeof(page) + sizeof(chunk_header) == current_page->size) {
+        if (current_page->type == TINY) {
+            g_state.free_tiny_page_count++;
+        } else if (current_page->type == SMALL) {
+            g_state.free_small_page_count++;
+        }
+        return true;
+    }
+    return false;
+}
+
+
+bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
+    page* current_page = (page*)chunk_header_get_page(self);
+    if (chunk_header_get_size(self) + sizeof(page) + sizeof(chunk_header) == current_page->size) {
+        if (current_page->type == TINY) {
+            g_state.free_tiny_page_count--;
+        } else if (current_page->type == SMALL) {
+            g_state.free_small_page_count--;
+        }
+        return true;
+    }
+    return false;
+}
+
+
+bool    page_remove_if_extra(page* self) {
+
+    if (self->type == TINY && g_state.free_tiny_page_count > 1 && ((float)g_state.free_tiny_page_count > ((float)g_state.tiny_page_count * FREE_PAGE_RATIO))) {
+        ft_log_trace("[free] free tiny pages (%d/%d), removing extra tiny page\n", g_state.free_tiny_page_count, g_state.tiny_page_count);
+        page_remove(&g_state.tiny, self);
+        g_state.free_tiny_page_count--;
+        g_state.tiny_page_count--;
+        return true;
+    }
+    else if (self->type == TINY) {
+        ft_log_trace("[free] free tiny pages (%d/%d), not removing extra tiny page\n", g_state.free_tiny_page_count, g_state.tiny_page_count);
+        return false;
+    }
+
+    if (self->type == SMALL && g_state.free_small_page_count > 1 && ((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
+        ft_log_trace("[free] free small pages (%d/%d), removing extra small page\n", g_state.free_small_page_count, g_state.small_page_count);
+        page_remove(&g_state.small, self);
+        g_state.free_small_page_count--;
+        g_state.small_page_count--;
+        return true;
+    }
+    else if (self->type == SMALL) {
+        ft_log_trace("[free] free small pages (%d/%d), not removing extra small page\n", g_state.free_small_page_count, g_state.small_page_count);
+        return false;
+    }
+
+    return false;
+}
+
+
 void chunk_header_print_metadata(chunk_header *self) {
     ft_log_trace("--- Chunk metadata: ---\n");
     ft_log_trace("- Address: %p\n", self);
@@ -194,4 +252,22 @@ void show_chunk_status(void *ptr) {
     ft_log_debug("Payload address: %p\n", ptr);
     ft_log_debug("Next block header: %p\n", (size_t)header + chunk_header_get_size(header));
     ft_log_debug("--------------------\n");
+}
+
+void show_state_status() {
+    ft_log_debug("State status: \n");
+    ft_log_debug("TINY\n");
+    ft_log_debug("Total pages: %d\n", g_state.tiny_page_count);
+    ft_log_debug("Free pages: %d\n", g_state.free_tiny_page_count);
+    ft_log_debug("SMALL\n");
+    ft_log_debug("Total pages: %d\n", g_state.small_page_count);
+    ft_log_debug("Free pages: %d\n", g_state.free_small_page_count);
+    ft_log_debug("LARGE\n");
+    ft_log_debug("Total pages: %d\n", g_state.large_page_count);
+}
+
+void print_header_sizes() {
+    ft_log_debug("Page Header size: %d\n", sizeof(page));
+    ft_log_debug("Chunk Header size: %d\n", sizeof(chunk_header));
+    ft_log_debug("Free Chunk Header size: %d\n", sizeof(free_chunk_header));
 }
