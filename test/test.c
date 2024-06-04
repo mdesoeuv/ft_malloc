@@ -29,7 +29,6 @@ int main(void)
 		ft_putstr("Malloc failed\n");
 		return 0;
 	}
-	show_chunk_status(ptr);
 	show_alloc_mem();
 	ft_memcpy(ptr, "Hello World", 12);
 	ft_printf("ptr: %s\n", ptr);

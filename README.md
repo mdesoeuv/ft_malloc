@@ -132,6 +132,7 @@ make && ./preload_wapper.sh cat
 ### Debug
 
 The log level is defined with the environment variable `M_LOGLEVEL`
+- `TRACE`
 - `DEBUG`
 - `INFO`
 

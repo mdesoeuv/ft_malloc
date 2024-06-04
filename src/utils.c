@@ -86,13 +86,13 @@ void*   chunk_header_get_page(chunk_header *self) {
 
 
 void chunk_header_print_metadata(chunk_header *self) {
-    ft_log_debug("--- Chunk metadata: ---\n");
-    ft_log_debug("- Address: %p\n", self);
-    ft_log_debug("- Size: %d\n", chunk_header_get_size(self));
-    ft_log_debug("- Arena: %d\n", chunk_header_get_arena(self));
-    ft_log_debug("- MMapped: %d\n", chunk_header_get_mmapped(self));
-    ft_log_debug("- Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
-    ft_log_debug("--- End of chunk metadata ---\n");
+    ft_log_trace("--- Chunk metadata: ---\n");
+    ft_log_trace("- Address: %p\n", self);
+    ft_log_trace("- Size: %d\n", chunk_header_get_size(self));
+    ft_log_trace("- Arena: %d\n", chunk_header_get_arena(self));
+    ft_log_trace("- MMapped: %d\n", chunk_header_get_mmapped(self));
+    ft_log_trace("- Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
+    ft_log_trace("--- End of chunk metadata ---\n");
 }
 
 allocation_type chunk_get_allocation_type(size_t size) {
@@ -135,13 +135,13 @@ size_t page_get_rounded_size(size_t size) {
 
 void page_print_metadata(page *self) {
     char** types = (char*[]){"TINY", "SMALL", "LARGE"};
-    ft_log_debug("-- Page metadata: --\n");
-    ft_log_debug("Type: %s\n", types[self->type]);
-    ft_log_debug("Address: %p\n", self);
-    ft_log_debug("Next: %p\n", self->next);
-    ft_log_debug("Size: %d\n", self->size);
-    ft_log_debug("First free chunk: %p\n", self->first_chunk);
-    ft_log_debug("-- End of page metadata --\n");
+    ft_log_trace("-- Page metadata: --\n");
+    ft_log_trace("Type: %s\n", types[self->type]);
+    ft_log_trace("Address: %p\n", self);
+    ft_log_trace("Next: %p\n", self->next);
+    ft_log_trace("Size: %d\n", self->size);
+    ft_log_trace("First free chunk: %p\n", self->first_chunk);
+    ft_log_trace("-- End of page metadata --\n");
 }
 
 void show_alloc_mem() {

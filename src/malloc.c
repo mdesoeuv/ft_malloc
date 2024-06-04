@@ -13,6 +13,13 @@ void initialize_log_level() {
     if (!log) {
         return ;
     }
+
+    if (ft_strcmp(log, "TRACE") == 0) {
+        ft_printf("[malloc] log level set to TRACE\n");
+        LOG_LEVEL = TRACE;
+        return ;
+    }
+
     if (ft_strcmp(log, "DEBUG") == 0) {
         ft_printf("[malloc] log level set to DEBUG\n");
         LOG_LEVEL = DEBUG;
@@ -98,7 +105,7 @@ void *malloc(size_t size) {
 
     // Compute page size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
-    ft_log_debug("Computed chunk size: %d\n", chunk_size);
+    ft_log_debug("[malloc] computed chunk size: %d\n", chunk_size);
 
     allocation_type type = chunk_get_allocation_type(chunk_size);
     
@@ -117,7 +124,8 @@ void *malloc(size_t size) {
             break;
     }
     chunk_header_print_metadata(chunk);
-    ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), chunk_size - sizeof(chunk_header));
+    ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), size);
+    ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
     return chunk_header_get_payload(chunk);
 }
 
@@ -133,9 +141,9 @@ void page_remove(page** self, page* target) {
         cursor = &(*cursor)->next;
     }
     *cursor = (*cursor)->next;
-    ft_log_debug("[free] unmapping page of size %d at address: %p\n", target->size, target);
+    ft_log_debug("[malloc] unmapping page of size %d at address: %p\n", target->size, target);
     if(munmap((void*)target, target->size)) {
-        ft_log_error("[free] ERROR unmaping page\n");
+        ft_log_error("[malloc] ERROR unmaping page\n");
     }
 }
 
@@ -149,9 +157,7 @@ chunk_header* large_alloc(size_t chunk_size) {
 
     chunk_header* chunk = new_page->first_chunk;
     chunk_header_set_mmapped(chunk, true);
-
-    chunk_header_print_metadata(chunk);
-
+    // chunk_header_print_metadata(chunk);
     new_page->first_chunk = chunk_header_get_next(chunk);
 
     return chunk;

@@ -21,6 +21,7 @@ extern int LOG_LEVEL;
 typedef enum e_log_level {
     INFO,
     DEBUG,
+    TRACE
 } log_level;
 
 #define ft_log_info(format, ...) \
@@ -33,6 +34,13 @@ typedef enum e_log_level {
 #define ft_log_debug(format, ...) \
     do { \
         if (LOG_LEVEL > INFO) { \
+            ft_printf(format, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
+#define ft_log_trace(format, ...) \
+    do { \
+        if (LOG_LEVEL >= TRACE) { \
             ft_printf(format, ##__VA_ARGS__); \
         } \
     } while(0)
