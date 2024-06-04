@@ -7,10 +7,17 @@
 #define TINY_THRESHOLD 512
 #define SMALL_THRESHOLD 1024
 
+/* 
+	Trick for the compiler to not optimize the free function
+	and call it with null parameter
+*/
+void non_optimized_free(void* ptr) {
+	free(ptr);
+}
 
 void test_free_null() {
-	ft_putstr("Freeing NULL\n");
-	free(NULL);
+	ft_putstr("Testing free(NULL)\n");
+	non_optimized_free(NULL);
 }
 
 
@@ -34,7 +41,6 @@ int main(void)
 	// ft_putstr("Realloc successful\n");
 	ft_memcpy(ptr2, "Hello World from pointer 2", 12);
 	ft_printf("ptr2: %s\n", ptr2);
-	// show_chunk_status(ptr2);
 	show_alloc_mem();
 	void* ptr3 = malloc(100 * sizeof(char));
 	if (!ptr3) {
