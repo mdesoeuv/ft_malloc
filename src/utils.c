@@ -242,13 +242,13 @@ void show_chunk_status(void *ptr) {
 void show_state_status() {
     ft_log_debug("State status: \n");
     ft_log_debug("TINY\n");
-    ft_log_debug("Allocated pages: %d\n", g_state.tiny_page_count);
+    ft_log_debug("Total pages: %d\n", g_state.tiny_page_count);
     ft_log_debug("Free pages: %d\n", g_state.free_tiny_page_count);
     ft_log_debug("SMALL\n");
-    ft_log_debug("Allocated pages: %d\n", g_state.small_page_count);
+    ft_log_debug("Total pages: %d\n", g_state.small_page_count);
     ft_log_debug("Free pages: %d\n", g_state.free_small_page_count);
     ft_log_debug("LARGE\n");
-    ft_log_debug("Allocated pages: %d\n", g_state.large_page_count);
+    ft_log_debug("Total pages: %d\n", g_state.large_page_count);
 }
 
 void print_header_sizes() {
