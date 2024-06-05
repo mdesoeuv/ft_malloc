@@ -182,7 +182,7 @@ chunk_header* small_alloc(size_t chunk_size) {
     if (free_chunk == NULL) {
         page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
         free_chunk = new_page->first_chunk;
-        chunk_header_divide((chunk_header*)free_chunk, chunk_size, SMALL);
+        chunk_header_divide((chunk_header*)free_chunk, chunk_size);
     }
     return free_chunk;
 }
@@ -194,18 +194,18 @@ chunk_header* tiny_alloc(size_t chunk_size) {
         size_t page_size = page_get_rounded_size(chunk_size);
         page* new_page = page_get_new(page_size, TINY);
         free_chunk = new_page->first_chunk;
-        chunk_header_divide((chunk_header*)free_chunk, chunk_size, TINY);
+        chunk_header_divide((chunk_header*)free_chunk, chunk_size);
 
     }
     return free_chunk;
 }
 
 
-void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type type) {
+void chunk_header_divide(chunk_header* chunk, size_t new_size) {
     ft_log_debug("[malloc] dividing chunk at address: %p\n", chunk);
     size_t old_size = chunk_header_get_size(chunk);
     if (new_size >= old_size) {
-        ft_log_error("[malloc] ERROR: New size is greater than old size\n");
+        ft_log_error("[malloc] new size is equal or greater than old size\n");
         return;
     }
     size_t diff = old_size - new_size;
@@ -230,11 +230,10 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size, allocation_type t
     // Update prev_size of the next chunk
     chunk_header* next = chunk_header_get_next(new_chunk);
     next->prev_size = diff;
+    chunk_header_set_prev_inuse(next, false);
     
     // Insert the new chunk in the free list
-    if (type != LARGE) {
-        free_chunk_insert((free_chunk_header *)new_chunk);
-    }
+    free_chunk_insert((free_chunk_header *)new_chunk);
 
     ft_log_debug("[malloc] resized chunk of size %d at address: %p, new chunk of size %d at address: %p\n", new_size, chunk, diff, new_chunk);
 }

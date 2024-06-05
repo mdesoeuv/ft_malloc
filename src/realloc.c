@@ -1,55 +1,59 @@
 #include "../includes/ft_malloc.h"
 
 void *realloc(void *ptr, size_t size) {
-    ft_log_debug("Realloc! Requested size: %d\n", size);
+    ft_log_info("[realloc] origin: %p, requested size: %d\n", ptr, size);
     if (!ptr) {
-        ft_log_debug("Null pointer: the address was not previously allocated.\n");
+        ft_log_debug("[realloc] null pointer: the address was not previously allocated.\n");
         return malloc(size);
     }
     if (size == 0) {
-        ft_log_debug("Size is 0: freeing memory\n");
+        ft_log_debug("[realloc] requested size is 0: freeing memory\n");
         free(ptr);
         return (NULL);
     }
 
-    allocation_type type = chunk_get_allocation_type(size);
 
     // Retrieve the chunk metadata
     chunk_header* header = payload_to_header(ptr);
     size_t old_size = chunk_header_get_size(header);
-    ft_log_debug("Old size: %d\n", old_size);
-    ft_log_debug("New size: %d\n", size);
 
     // Compute the new size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
-    ft_log_debug("Computed chunk size: %d\n", chunk_size);
+
+    ft_log_debug("[realloc] old size: %d, new requested size: %d, computed chunk size: %d\n", old_size, size, chunk_size);
 
 
-
-    chunk_header* chunk;
-    
-    switch(type) {
-        case TINY:
-            ft_log_debug("Tiny Allocation\n");
-            chunk = tiny_alloc(chunk_size);
-            break;
-        case SMALL:
-            ft_log_debug("Small Allocation\n");
-            chunk = small_alloc(chunk_size);
-            break;
-        case LARGE:
-            ft_log_debug("Large Allocation\n");
-            chunk = large_alloc(chunk_size);
-            break;
+    if (old_size >= chunk_size) {
+        ft_log_debug("[realloc] old size is equal or larger than the new size: resizing chunk and returning the same pointer\n");
+        chunk_header_divide(header, chunk_size);
+        return ptr;
     }
 
-    chunk_header_print_metadata(chunk);
+    // Check if next chunk is free and large enough for the extra size
+    size_t extra_size = chunk_size - old_size;
+    chunk_header* next = chunk_header_get_next(header);
+    if (chunk_header_get_size(next) != 0) {
+        chunk_header* next_next = chunk_header_get_next(next);
+        size_t next_size = chunk_header_get_size(next);
+        if (!chunk_header_get_prev_inuse(next_next) && next_size >= extra_size) {
+            ft_log_debug("[realloc] next chunk is free and large enough to accomodate the extra size (%d)\n", next_size);
+            free_chunk_remove((free_chunk_header*)next);
+            next_next->prev_inuse = true;
+            next_next->prev_size = old_size + next_size;
+            chunk_header_set_size(header, old_size + next_size);
+            return ptr;
+        }
+    }
+
+    ft_log_debug("[realloc] chunk cannot be extended: allocating new chunk\n");
+    chunk_header* chunk = payload_to_header(malloc(size));
+
 
     // Copy the data from the old block to the new block
     size_t min_size = old_size < chunk_size ? old_size : chunk_size;
-    ft_log_debug("Copying %d bytes\n", min_size - sizeof(chunk_header));
+    ft_log_debug("[realloc] copying %d bytes\n", min_size - sizeof(chunk_header));
     ft_memcpy(chunk_header_get_payload(chunk), ptr, min_size - sizeof(chunk_header));
-    ft_log_debug("Data copied\n");
+    ft_log_debug("[realloc] data copied\n");
     free(ptr);
     return chunk_header_get_payload(chunk);
 }
