@@ -33,8 +33,11 @@ void    free_chunk_insert(free_chunk_header* chunk) {
     if (pool->type == TINY) {
         list = &g_state.tiny_free;        
     }
-    else {
+    else if (pool->type == SMALL) {
         list = &g_state.small_free;
+    }
+    else {
+        return;
     }
 
     chunk->next = *list;
@@ -77,7 +80,7 @@ free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, alloc
         if (chunk_header_get_size((chunk_header*)cursor) >= size + sizeof(size_t)) {
             ft_log_debug("[malloc] found chunk of size %d at address: %p\n", size, cursor);
             chunk_header_alloc_update_free_pages((chunk_header*)cursor);
-            chunk_header_divide((chunk_header*)cursor, size, type);
+            chunk_header_divide((chunk_header*)cursor, size);
             free_chunk_remove(cursor);
             return cursor;
         }
