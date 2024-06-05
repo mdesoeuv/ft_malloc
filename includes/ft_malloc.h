@@ -1,8 +1,7 @@
 #ifndef FT_MALLOC_H
 # define FT_MALLOC_H
 
-#include "../ft_printf/ft_printf.h"
-#include "../libft/libft.h"
+// #include "../includes/ft_printf.h"
 #include <sys/mman.h> // mmap, munmap
 #include <unistd.h> // getpagesize
 #include <sys/resource.h> // getrlimit
@@ -27,37 +26,37 @@ typedef enum e_log_level {
 #define ft_log_info(format, ...) \
     do { \
         if (LOG_LEVEL >= INFO) { \
-            ft_printf(format, ##__VA_ARGS__); \
+            /* ft_printf(format, ##__VA_ARGS__); */ \
         } \
     } while(0)
 
 #define ft_log_debug(format, ...) \
     do { \
         if (LOG_LEVEL > INFO) { \
-            ft_printf(format, ##__VA_ARGS__); \
+            /* ft_printf(format, ##__VA_ARGS__); */ \
         } \
     } while(0)
 
 #define ft_log_trace(format, ...) \
     do { \
         if (LOG_LEVEL >= TRACE) { \
-            ft_printf(format, ##__VA_ARGS__); \
+           /* ft_printf(format, ##__VA_ARGS__); */ \
         } \
     } while(0)
 
 #define ft_log_error(format, ...) \
     do { \
         if (LOG_LEVEL >= INFO) { \
-            ft_printf(format, ##__VA_ARGS__); \
+          /*  ft_printf(format, ##__VA_ARGS__); */ \
         } \
     } while(0)
 
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
-#define SMALL_THRESHOLD      512
+#define SMALL_THRESHOLD      1024
 #define LARGE_THRESHOLD      2048
-#define SMALL_PAGE_REQUEST   12 * PAGE_SIZE
-#define TINY_PAGE_REQUEST    13 * PAGE_SIZE
+#define SMALL_PAGE_REQUEST   1 * PAGE_SIZE
+#define TINY_PAGE_REQUEST    1 * PAGE_SIZE
 #define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
 #define PAGE_SIZE            4096
 #define FREE_PAGE_RATIO      0.5 // must be positive
@@ -175,10 +174,14 @@ void                    free_print_list(free_chunk_header* self);
     ------------------------------
     |        CHUNKS               |
     ------------------------------
+    |        PAGE GUARD           |
+    ------------------------------
 
     Allocation Type is an enum of TINY, SMALL, LARGE
     This is need to determine the page pool of chunk
     during free() operation
+
+    The page guard is a chunk header with size 0
 
 */
 

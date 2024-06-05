@@ -209,7 +209,7 @@ void show_alloc_mem() {
     page* current = g_state.tiny;
     size_t total_size = 0;
     while (current) {
-        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        ft_log_debug("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
         total_size += current->size;
         current = current->next;
     }
@@ -218,7 +218,7 @@ void show_alloc_mem() {
     current = g_state.small;
     total_size = 0;
     while (current) {
-        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        ft_log_debug("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
         total_size += current->size;
         current = current->next;
     }
@@ -227,7 +227,7 @@ void show_alloc_mem() {
     current = g_state.large;
     total_size = 0;
     while (current) {
-        ft_printf("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        ft_log_debug("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
         total_size += current->size;
         current = current->next;
     }

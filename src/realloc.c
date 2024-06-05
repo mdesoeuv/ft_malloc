@@ -1,5 +1,13 @@
 #include "../includes/ft_malloc.h"
 
+void ft_memcpy(void* dst, void* src, size_t size) {
+    char* dst_c = (char*)dst;
+    char* src_c = (char*)src;
+    for (size_t i = 0; i < size; i++) {
+        dst_c[i] = src_c[i];
+    }
+}
+
 void *realloc(void *ptr, size_t size) {
     ft_log_info("[realloc] origin: %p, requested size: %d\n", ptr, size);
     if (!ptr) {

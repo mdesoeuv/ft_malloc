@@ -1,36 +1,40 @@
-#include "../libft/libft.h"
-#include "../ft_printf/ft_printf.h"
 #include "../includes/ft_malloc.h"
 
 int LOG_LEVEL = -1;
 mstate g_state = {NULL, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0};
 
+int ft_strcmp(const char *s1, const char *s2) {
+
+    while (*s1 && *s1 == *s2) {
+        s1++;
+        s2++;
+    }
+    return *(unsigned char *)s1 - *(unsigned char *)s2;
+}
+
 
 void initialize_log_level() __attribute__((constructor));
 
 void initialize_log_level() {
-    char* log = getenv("M_LOGLEVEL");
-    if (!log) {
-        return ;
-    }
+    // char* log = getenv("M_LOGLEVEL");
+    // if (!log) {
+    //     return ;
+    // }
 
-    if (ft_strcmp(log, "TRACE") == 0) {
-        ft_printf("[malloc] log level set to TRACE\n");
-        LOG_LEVEL = TRACE;
-        return ;
-    }
+    // if (ft_strcmp(log, "TRACE") == 0) {
+    //     LOG_LEVEL = TRACE;
+    //     return ;
+    // }
 
-    if (ft_strcmp(log, "DEBUG") == 0) {
-        ft_printf("[malloc] log level set to DEBUG\n");
-        LOG_LEVEL = DEBUG;
-        return ;
-    }
+    // if (ft_strcmp(log, "DEBUG") == 0) {
+    //     LOG_LEVEL = DEBUG;
+    //     return ;
+    // }
 
-    if (ft_strcmp(log, "INFO") == 0) {
-        ft_printf("[malloc] log level set to INFO\n");
-        LOG_LEVEL = INFO;
-        return ;
-    }
+    // if (ft_strcmp(log, "INFO") == 0) {
+    //     LOG_LEVEL = INFO;
+    //     return ;
+    // }
 }
 
 page* page_get_new(size_t page_size, allocation_type type) {
@@ -130,6 +134,7 @@ void *malloc(size_t size) {
     chunk_header_print_metadata(chunk);
     ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), size);
     ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
+    ft_log_trace("[malloc] page count: tiny: %d, small: %d, large: %d\n", page_count(g_state.tiny), page_count(g_state.small), page_count(g_state.large));
     return chunk_header_get_payload(chunk);
 }
 
