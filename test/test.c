@@ -141,14 +141,53 @@ int main(void)
 	}
 	r_ptr1[49] = '\0';
 	ft_printf("r_ptr1: %s\n", r_ptr1);
-	show_alloc_mem();
+	// show_alloc_mem();
 	ft_putstr("shrinking chunk to 10 bytes\n");
 	r_ptr1 = realloc(r_ptr1, 10 * sizeof(char));
 	r_ptr1[9] = '\0';
 	ft_printf("r_ptr1: %s\n", r_ptr1);
-	show_alloc_mem();
+	// show_alloc_mem();
 	free(r_ptr1);
+	// show_alloc_mem();
+	
+	// Test large realloc
+	ft_putstr("Testing large realloc\n");
+	char* large_ptr = malloc(15000 * sizeof(char));
+	// Fill large chunk
+	for (int i = 0; i < 14999; i++) {
+		((char *)large_ptr)[i] = 'A';
+	}
+	large_ptr[14999] = '\0';
+	ft_printf("large_ptr: %s\n", large_ptr);
+	show_alloc_mem();
+	ft_putstr("Extending large_ptr to 20000 bytes\n");
+	large_ptr = realloc(large_ptr, 20000 * sizeof(char));
+	// Fill the rest of the chunk
+	for (int i = 14999; i < 19999; i++) {
+		((char *)large_ptr)[i] = 'B';
+	}
+	large_ptr[19999] = '\0';
+	ft_printf("large_ptr: %s\n", large_ptr);
+	show_alloc_mem();
+	free(large_ptr);
 	show_alloc_mem();
 
+	// Test Realloc with null pointer
+	ft_putstr("Testing realloc with null pointer\n");
+	void* null_ptr = NULL;
+	void* realloc_null = realloc(null_ptr, 10 * sizeof(char));
+	show_alloc_mem();
+	free(realloc_null);
+	show_alloc_mem();
+	
+	// Test Realloc with 0 size
+	ft_putstr("Testing realloc with 0 size\n");
+	char* zero_ptr = (char*)malloc(10 * sizeof(char));
+	ft_memcpy(zero_ptr, "Hello", 5);
+	ft_printf("zero_ptr: %s\n", zero_ptr);
+	show_alloc_mem();
+	char* realloc_zero = realloc(zero_ptr, 0);
+	ft_printf("realloc_zero: %s\n", realloc_zero);
+	show_alloc_mem();
 	return 0;
 }
