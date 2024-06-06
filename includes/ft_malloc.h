@@ -160,16 +160,16 @@ void                    free_print_list(free_chunk_header* self);
 
 
 /*
-    Page structure
+    Heap structure
     This structure is used to keep track of the memory pages
     allocated by the program
 
     ------------------------------
-    |        next_page ptr        |
+    |        next_heap ptr        |
     ------------------------------
     |        first_chunk ptr      |
     ------------------------------
-    |        page size            |
+    |        heap size            |
     ------------------------------
     |        allocation type      |
     ------------------------------
@@ -180,7 +180,7 @@ void                    free_print_list(free_chunk_header* self);
 
 
     Allocation Type is an enum of TINY, SMALL, LARGE
-    This is need to determine the page pool of chunk
+    This is need to determine the heap pool of chunk
     during free() operation
 
 
@@ -204,13 +204,13 @@ void    heap_print_metadata(heap *self);
 /*
     Global state structure
     This structure is used to keep track of 
-    the page lists and free chunk lists
+    the heap lists and free chunk lists
     
     The next free chunk pointers are written directly in 
     the headers of the chunks
 
-    Identically, the next page pointers are written directly in
-    the page headers 
+    Identically, the next heap pointers are written directly in
+    the heap headers 
 */
 typedef struct s_mstate {
     heap*  tiny;
