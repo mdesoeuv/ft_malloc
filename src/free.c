@@ -94,8 +94,8 @@ free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, alloc
 
 void    free_coalesce_chunk(chunk_header* chunk) {
 
-    free_coalesce_next_chunk(chunk);
     chunk_header* new = free_coalesce_prev_chunk(chunk);
+    free_coalesce_next_chunk(new);
     if (chunk_header_free_update_free_pages(new)) {
         page* current_page = (page*)chunk_header_get_page(new);
         ft_log_trace("[free] page is free in list %d\n", current_page->type);

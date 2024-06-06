@@ -159,10 +159,10 @@ void chunk_header_print_metadata(chunk_header *self) {
 
 allocation_type chunk_get_allocation_type(size_t size) {
 
-    if (size < SMALL_THRESHOLD) {
+    if (size <= SMALL_THRESHOLD) {
         return TINY;
     }
-    if (size < LARGE_THRESHOLD) {
+    if (size <= LARGE_THRESHOLD) {
         return SMALL;
     }
     return LARGE;
@@ -207,42 +207,46 @@ void page_print_metadata(page *self) {
 }
 
 void show_alloc_mem() {
-    ft_log_debug("-- Show alloc mem! --\n");
-    ft_log_debug("ALLOCATED MEMORY\n");
-    ft_log_debug("TINY\n");
+    // ft_printf("-- Show alloc mem! --\n");
+    // ft_printf("ALLOCATED MEMORY\n");
+    // ft_printf("TINY\n");
     page* current = g_state.tiny;
     size_t total_size = 0;
     while (current) {
-        ft_log_debug("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        ft_printf("TINY : %p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        print_chunk_in_use(current);
         total_size += current->size;
         current = current->next;
     }
-    ft_log_debug("TINY Size: %d\n\n", total_size);
-    ft_log_debug("SMALL\n");
+    ft_printf("TINY Total Size: %d\n\n", total_size);
+    // ft_printf("SMALL\n");
     current = g_state.small;
     total_size = 0;
     while (current) {
-        ft_log_debug("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        ft_printf("SMALL : %p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        print_chunk_in_use(current);
         total_size += current->size;
         current = current->next;
     }
-    ft_log_debug("SMALL Size: %d\n\n", total_size);
-    ft_log_debug("LARGE\n");
+    ft_printf("SMALL Total Size: %d\n\n", total_size);
+    // ft_printf("LARGE\n");
     current = g_state.large;
     total_size = 0;
     while (current) {
-        ft_log_debug("%p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        ft_printf("LARGE : %p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
+        print_chunk_in_use(current);
         total_size += current->size;
         current = current->next;
     }
-    ft_log_debug("LARGE Size: %d\n\n", total_size);
+    ft_printf("LARGE Total Size: %d\n\n", total_size);
 
-    ft_log_debug("FREE LISTS\n");
-    ft_log_debug("TINY\n");
+    // TODO Reformat for subject compliance
+    ft_printf("FREE LISTS\n");
+    ft_printf("TINY\n");
     free_print_list(g_state.tiny_free);
-    ft_log_debug("\nSMALL\n");
+    ft_printf("\nSMALL\n");
     free_print_list(g_state.small_free);
-    ft_log_debug("\n-- End of show alloc mem! --\n");
+    ft_printf("\n-- End of show alloc mem! --\n");
 }
 
 void show_chunk_status(void *ptr) {
@@ -274,4 +278,41 @@ void print_header_sizes() {
     ft_log_debug("Page Header size: %d\n", sizeof(page));
     ft_log_debug("Chunk Header size: %d\n", sizeof(chunk_header));
     ft_log_debug("Free Chunk Header size: %d\n", sizeof(free_chunk_header));
+}
+
+
+void print_chunk_in_use(page* self) {
+    chunk_header* cursor = self->first_chunk;
+    while (cursor && !chunk_header_is_last_on_heap(cursor)) {
+        ft_printf("%p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
+        cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
+    }
+}
+
+bool validate_pointer(void* ptr) {
+    if (ptr == NULL) {
+        ft_log_error("[malloc] ERROR: pointer is NULL\n");
+        return false;
+    }
+    chunk_header* header = payload_to_header(ptr);
+    page* current = (page*)chunk_header_get_page(header);
+    if (current->type == TINY) {
+        if (current != g_state.tiny) {
+            ft_log_error("[malloc] ERROR: pointer is not in the TINY pool\n");
+            return false;
+        }
+    }
+    else if (current->type == SMALL) {
+        if (current != g_state.small) {
+            ft_log_error("[malloc] ERROR: pointer is not in the SMALL pool\n");
+            return false;
+        }
+    }
+    else {
+        if (current != g_state.large) {
+            ft_log_error("[malloc] ERROR: pointer is not in the LARGE pool\n");
+            return false;
+        }
+    }
+    return true;
 }

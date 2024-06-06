@@ -132,7 +132,7 @@ void *malloc(size_t size) {
     chunk_header_set_allocated(chunk, true);
     chunk_header_print_metadata(chunk);
     ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), size);
-    ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
+    // ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
     ft_log_trace("[malloc] page count: tiny: %d, small: %d, large: %d\n", page_count(g_state.tiny), page_count(g_state.small), page_count(g_state.large));
     return chunk_header_get_payload(chunk);
 }

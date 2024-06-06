@@ -53,12 +53,12 @@ typedef enum e_log_level {
 
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
-#define SMALL_THRESHOLD      1024
-#define LARGE_THRESHOLD      2048
-#define SMALL_PAGE_REQUEST   12 * PAGE_SIZE
-#define TINY_PAGE_REQUEST    12 * PAGE_SIZE
+#define SMALL_THRESHOLD      128 + 16
+#define LARGE_THRESHOLD      1024 + 16
+#define TINY_PAGE_REQUEST    4 * PAGE_SIZE
+#define SMALL_PAGE_REQUEST   27 * PAGE_SIZE
 #define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
-#define PAGE_SIZE            4096
+#define PAGE_SIZE            getpagesize()
 #define FREE_PAGE_RATIO      0 // must be positive
 
 typedef enum e_allocation_type {
@@ -239,5 +239,6 @@ chunk_header* tiny_alloc(size_t chunk_size);
 void    show_alloc_mem();
 void    show_state_status();
 void    print_header_sizes();
+void    print_chunk_in_use(page* self);
 
 #endif
