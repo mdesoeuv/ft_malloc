@@ -75,7 +75,7 @@ typedef enum e_allocation_type {
     https://en.cppreference.com/w/cpp/language/bit_field
 
     ------------------------------
-    |        prev_size           |
+    |        prev ptr            |
     ------------------------------
     |       size         | A M P |
     ------------------------------
@@ -84,11 +84,11 @@ typedef enum e_allocation_type {
 
 */
 typedef struct s_chunk_header {
-    struct s_chunk_header*            prev;
-    size_t                             word_count : 8 * sizeof(size_t) - 3;
-    bool                     allocated : 1;
-    bool                     mmapped : 1;
-    bool                     prev_inuse : 1;
+    struct s_chunk_header*  prev;
+    size_t                  word_count : 8 * sizeof(size_t) - 3;
+    bool                    allocated : 1;
+    bool                    mmapped : 1;
+    bool                    prev_inuse : 1;
 } chunk_header;
 
 
@@ -98,7 +98,7 @@ typedef struct s_chunk_header {
     This structure is used to keep track of the free memory chunks
 
     ------------------------------
-    |        prev_size           |
+    |        prev ptr            |
     ------------------------------
     |       size         | A M P |
     ------------------------------
@@ -176,14 +176,12 @@ void                    free_print_list(free_chunk_header* self);
     ------------------------------
     |        CHUNKS               |
     ------------------------------
-    |        PAGE GUARD           |
-    ------------------------------
+
 
     Allocation Type is an enum of TINY, SMALL, LARGE
     This is need to determine the page pool of chunk
     during free() operation
 
-    The page guard is a chunk header with size 0
 
 */
 
