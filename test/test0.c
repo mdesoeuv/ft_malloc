@@ -1,15 +1,14 @@
-#include "../includes/ft_malloc.h"
+#include <stdlib.h>
 
-
-int    main(void)
+int      main(void)
 {
-    int        i;
-    char    *addr;
+    int   i;
+    char  *addr;
 
-    i = 0;
-    while (i < 1024)
+    i = 0; 
+    while (i < 1024) 
     {
         i++;
-    }
-    return (0);
+    } 
+    return (0); 
 }
