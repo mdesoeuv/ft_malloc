@@ -23,14 +23,14 @@ void free(void *ptr) {
     } else {
         free_coalesce_chunk(header);
     }
-    ft_log_debug("[free] size: %d at address: %p\n", size - sizeof(chunk_header), ptr);
+    ft_log_trace("[free] size: %d at address: %p\n", size - sizeof(chunk_header), ptr);
 }
 
 void    free_large(chunk_header* header) {
     page* start = page_get_start(header);
     page_remove(&g_state.large, start);
     g_state.large_page_count--;
-    ft_log_debug("[free] large chunk unmmaped\n");
+    ft_log_trace("[free] large chunk unmmaped\n");
 }
 
 void    free_chunk_insert(free_chunk_header* chunk) {
@@ -48,7 +48,7 @@ void    free_chunk_insert(free_chunk_header* chunk) {
     chunk_header_set_allocated((chunk_header*)chunk, false);
     chunk->next = *list;
     *list = chunk;
-    ft_log_debug("[free] inserted free chunk in list %d\n", pool->type);
+    ft_log_trace("[free] inserted free chunk in list %d\n", pool->type);
 }
 
 void    free_chunk_remove(free_chunk_header* target) {
@@ -67,13 +67,13 @@ void    free_chunk_remove(free_chunk_header* target) {
         cursor = &(*cursor)->next;
     }
     *cursor = (*cursor)->next;
-    ft_log_debug("[free] removed free chunk from list %d\n", current_page->type);
+    ft_log_trace("[free] removed free chunk from list %d\n", current_page->type);
 }
 
 void    free_print_list(free_chunk_header* self) {
     free_chunk_header* cursor = self;
     while (cursor != NULL) {
-        ft_log_debug("Free chunk of size %d, at address: %p\n", chunk_header_get_size((chunk_header*)cursor), cursor);
+        ft_printf("Free chunk of size %d, at address: %p\n", chunk_header_get_size((chunk_header*)cursor), cursor);
         cursor = cursor->next;
     }
 }
@@ -81,7 +81,7 @@ void    free_print_list(free_chunk_header* self) {
 
 free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, allocation_type type) {
     free_chunk_header* cursor = self;
-    ft_log_debug("[malloc] searching for free chunk of size %d in list %d\n", size, type);
+    ft_log_trace("[malloc] searching for free chunk of size %d in list %d\n", size, type);
     while (cursor != NULL) {
         if (chunk_header_get_size((chunk_header*)cursor) >= size + sizeof(size_t)) {
             ft_log_debug("[malloc] found chunk of size %d at address: %p\n", size, cursor);
@@ -106,7 +106,7 @@ void    free_coalesce_chunk(chunk_header* chunk) {
         page* current_page = (page*)chunk_header_get_page(new);
         ft_log_trace("[free] page is free in list %d\n", current_page->type);
         if (page_remove_if_extra(current_page)) {
-            ft_log_trace("[free] page removed\n");
+            ft_log_debug("[free] page removed\n");
             return;
         }
     }
@@ -117,11 +117,11 @@ void    free_coalesce_chunk(chunk_header* chunk) {
 chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
     chunk_header* prev_chunk = chunk->prev;
     if (chunk_header_is_first_on_heap(chunk)) {
-        ft_log_debug("[free] first chunk in page, no previous chunk, cannot coalesce\n");
+        ft_log_trace("[free] first chunk in page, no previous chunk, cannot coalesce\n");
         return chunk;
     }
     if (chunk_header_get_allocated(prev_chunk)) {
-        ft_log_debug("[free] previous chunk is in use, cannot coalesce\n");
+        ft_log_trace("[free] previous chunk is in use, cannot coalesce\n");
         return chunk;
     }
     size_t size = chunk_header_get_size(chunk);
@@ -142,20 +142,19 @@ chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
 chunk_header*     free_coalesce_next_chunk(chunk_header* chunk) {
 
     if (chunk_header_is_last_on_heap(chunk)) {
-        ft_log_debug("[free] last chunk in page, no next chunk, cannot coalesce\n");
+        ft_log_trace("[free] last chunk in page, no next chunk, cannot coalesce\n");
         return chunk;
     }
 
     chunk_header* next = chunk_header_get_next(chunk);
     if (chunk_header_get_allocated(next)) {
-        ft_log_debug("[free] next chunk is allocated, cannot coalesce\n");
+        ft_log_trace("[free] next chunk is allocated, cannot coalesce\n");
         return chunk;
     }
     size_t size = chunk_header_get_size(chunk);
     size_t next_size = chunk_header_get_size(next);
     size_t new_size = size + next_size;
     chunk_header_set_size(chunk, new_size);
-    // chunk_header_set_allocated(next, true);
     if (!chunk_header_is_last_on_heap(next)) {
         chunk_header* next_next = chunk_header_get_next(next);
         next_next->prev = chunk;

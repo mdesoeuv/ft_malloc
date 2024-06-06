@@ -39,7 +39,7 @@ void initialize_log_level() {
 
 page* page_get_new(size_t page_size, allocation_type type) {
 
-    ft_log_debug("[malloc] requesting new page of size: %d to kernel\n", page_size);
+    ft_log_trace("[malloc] requesting new page of size: %d to kernel\n", page_size);
     // Request page from kernel
     void* ptr = mmap(
         NULL,
@@ -67,15 +67,13 @@ page* page_get_new(size_t page_size, allocation_type type) {
     size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT);
     chunk_header* first = new_page->first_chunk;
 
-    ft_log_debug("[malloc] first chunk size on new page: %d\n", remaining_size);
+    ft_log_trace("[malloc] first chunk size on new page: %d\n", remaining_size);
     // Write chunk metadata
     chunk_header_set_size(first, remaining_size);
     chunk_header_set_mmapped(first, false);
     chunk_header_set_prev_inuse(first, true);
     chunk_header_set_allocated(first, false);
     first->prev = NULL;
-
-    page_print_metadata(new_page);
 
     // Insert page in the appropriate list
     switch(type) {
@@ -99,7 +97,7 @@ page* page_get_new(size_t page_size, allocation_type type) {
 
 void *malloc(size_t size) {
 
-    ft_log_debug("[malloc] requested size: %d\n", size);
+    ft_log_trace("[malloc] requested size: %d\n", size);
 
     if (size == 0) {
         ft_log_debug("[malloc] size is 0, returning NULL pointer\n");
@@ -110,7 +108,7 @@ void *malloc(size_t size) {
 
     // Compute page size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
-    ft_log_debug("[malloc] computed chunk size: %d\n", chunk_size);
+    ft_log_trace("[malloc] computed chunk size: %d\n", chunk_size);
 
     // Ensure that allocation is enough for linked list of freed chunks
     if (chunk_size < sizeof(free_chunk_header)) {
@@ -134,10 +132,8 @@ void *malloc(size_t size) {
             break;
     }
     chunk_header_set_allocated(chunk, true);
-    chunk_header_print_metadata(chunk);
     ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), size);
-    // ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
-    ft_log_trace("[malloc] page count: tiny: %d, small: %d, large: %d\n", page_count(g_state.tiny), page_count(g_state.small), page_count(g_state.large));
+    ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
     return chunk_header_get_payload(chunk);
 }
 
@@ -153,7 +149,7 @@ void page_remove(page** self, page* target) {
         cursor = &(*cursor)->next;
     }
     *cursor = (*cursor)->next;
-    ft_log_debug("[malloc] unmapping page of size %d at address: %p\n", target->size, target);
+    ft_log_trace("[malloc] unmapping page of size %d at address: %p\n", target->size, target);
     if(munmap((void*)target, target->size)) {
         ft_log_error("[malloc] ERROR unmaping page\n");
     }
@@ -170,7 +166,7 @@ int page_count(page* self) {
 
 
 chunk_header* large_alloc(size_t chunk_size) {
-    ft_log_debug("[malloc] large allocation\n");
+    ft_log_trace("[malloc] large allocation\n");
     size_t page_size = page_get_rounded_size(chunk_size);
 
     // Request page from kernel
@@ -184,7 +180,7 @@ chunk_header* large_alloc(size_t chunk_size) {
 }
 
 chunk_header* small_alloc(size_t chunk_size) {
-    ft_log_debug("[malloc] small allocation\n");
+    ft_log_trace("[malloc] small allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size, SMALL);
     if (free_chunk == NULL) {
         page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
@@ -195,7 +191,7 @@ chunk_header* small_alloc(size_t chunk_size) {
 }
 
 chunk_header* tiny_alloc(size_t chunk_size) {
-    ft_log_debug("[malloc] tiny allocation\n");
+    ft_log_trace("[malloc] tiny allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.tiny_free, chunk_size, TINY);
     if (free_chunk == NULL) {
         size_t page_size = page_get_rounded_size(chunk_size);
@@ -209,7 +205,7 @@ chunk_header* tiny_alloc(size_t chunk_size) {
 
 
 void chunk_header_divide(chunk_header* chunk, size_t new_size) {
-    ft_log_debug("[malloc] dividing chunk at address: %p\n", chunk);
+    ft_log_trace("[malloc] dividing chunk at address: %p\n", chunk);
     size_t old_size = chunk_header_get_size(chunk);
     if (new_size >= old_size) {
         ft_log_error("[malloc] new size is equal or greater than old size\n");

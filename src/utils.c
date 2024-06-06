@@ -87,7 +87,7 @@ void*   chunk_header_get_page(chunk_header *self) {
 
 bool    chunk_header_free_update_free_pages(chunk_header *self) {
     page* current_page = (page*)chunk_header_get_page(self);
-    ft_log_debug("[free] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
+    ft_log_trace("[free] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
 
     if (chunk_header_get_size(self) + to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
@@ -95,7 +95,7 @@ bool    chunk_header_free_update_free_pages(chunk_header *self) {
         } else if (current_page->type == SMALL) {
             g_state.free_small_page_count++;
         }
-        ft_log_debug("[free] free page added: %d\n", current_page->type);
+        ft_log_trace("[free] free page added: %d\n", current_page->type);
         return true;
     }
     return false;
@@ -104,13 +104,14 @@ bool    chunk_header_free_update_free_pages(chunk_header *self) {
 
 bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
     page* current_page = (page*)chunk_header_get_page(self);
-    ft_log_debug("[malloc] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
+    ft_log_trace("[malloc] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
     if (chunk_header_get_size(self) + to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count--;
         } else if (current_page->type == SMALL) {
             g_state.free_small_page_count--;
         }
+        ft_log_trace("[malloc] free page removed: %d\n", current_page->type);
         return true;
     }
     return false;
@@ -207,9 +208,7 @@ void page_print_metadata(page *self) {
 }
 
 void show_alloc_mem() {
-    // ft_printf("-- Show alloc mem! --\n");
-    // ft_printf("ALLOCATED MEMORY\n");
-    // ft_printf("TINY\n");
+
     page* current = g_state.tiny;
     size_t total_size = 0;
     while (current) {
@@ -219,7 +218,6 @@ void show_alloc_mem() {
         current = current->next;
     }
     ft_printf("TINY Total Size: %d\n\n", total_size);
-    // ft_printf("SMALL\n");
     current = g_state.small;
     total_size = 0;
     while (current) {
@@ -229,7 +227,6 @@ void show_alloc_mem() {
         current = current->next;
     }
     ft_printf("SMALL Total Size: %d\n\n", total_size);
-    // ft_printf("LARGE\n");
     current = g_state.large;
     total_size = 0;
     while (current) {
@@ -239,14 +236,6 @@ void show_alloc_mem() {
         current = current->next;
     }
     ft_printf("LARGE Total Size: %d\n\n", total_size);
-
-    // TODO Reformat for subject compliance
-    // ft_printf("FREE LISTS\n");
-    // ft_printf("TINY\n");
-    // free_print_list(g_state.tiny_free);
-    // ft_printf("\nSMALL\n");
-    // free_print_list(g_state.small_free);
-    // ft_printf("\n-- End of show alloc mem! --\n");
 }
 
 void show_chunk_status(void *ptr) {
@@ -288,14 +277,13 @@ void print_chunk_in_use(page* self) {
             ft_printf("%p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
         }
         else {
-            ft_printf("(free) %p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
+            ft_log_debug("(free) %p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
         }
-        if (!chunk_header_is_last_on_heap(cursor)) {
-            cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
-        }
-        else {
+        if (chunk_header_is_last_on_heap(cursor)) {
             break;
         }
+        cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
+
     }
 }
 
