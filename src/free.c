@@ -8,6 +8,12 @@ void free(void *ptr) {
         return;
     }
 
+    bool res = chunk_header_validate_pointer(ptr);
+    if (!res) {
+        ft_log_error("[free] invalid pointer: %p\n", ptr);
+        return;
+    }
+
     chunk_header* header = payload_to_header(ptr);
     int size = chunk_header_get_size(header);
     
@@ -164,12 +170,10 @@ bool    chunk_header_is_last_on_heap(chunk_header* chunk) {
     page* current_page = (page*)chunk_header_get_page(chunk);
     size_t page_end_addr = (size_t)current_page + current_page->size;
     size_t chunk_end_addr = (size_t)chunk + chunk_header_get_size(chunk);
-    ft_log_debug("[free] page end address: %p, chunk end address: %p, last chunk ?: %d\n", page_end_addr, chunk_end_addr, page_end_addr == chunk_end_addr);
     return page_end_addr == chunk_end_addr;
 }
 
 bool    chunk_header_is_first_on_heap(chunk_header* chunk) {
     page* current_page = (page*)chunk_header_get_page(chunk);
-    ft_log_debug("[free] first chunk address: %p, page first chunk address: %p, first chunk ?: %d\n", chunk, current_page->first_chunk, current_page->first_chunk == chunk);
     return current_page->first_chunk == chunk;
 }

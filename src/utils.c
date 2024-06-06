@@ -182,12 +182,12 @@ void* page_get_end(page *self) {
 }
 
 page* page_get_start(chunk_header* first_chunk) {
-    return (page*)((size_t)(first_chunk) - (size_t)first_chunk % getpagesize());
+    return (page*)((size_t)(first_chunk) - (size_t)first_chunk % PAGE_SIZE);
 }
 
 size_t page_get_rounded_size(size_t size) {
     
-    size_t page_size = getpagesize();
+    size_t page_size = PAGE_SIZE;
     size_t page_count = size / page_size;
     if (size % page_size) {
         page_count++;
@@ -241,12 +241,12 @@ void show_alloc_mem() {
     ft_printf("LARGE Total Size: %d\n\n", total_size);
 
     // TODO Reformat for subject compliance
-    ft_printf("FREE LISTS\n");
-    ft_printf("TINY\n");
-    free_print_list(g_state.tiny_free);
-    ft_printf("\nSMALL\n");
-    free_print_list(g_state.small_free);
-    ft_printf("\n-- End of show alloc mem! --\n");
+    // ft_printf("FREE LISTS\n");
+    // ft_printf("TINY\n");
+    // free_print_list(g_state.tiny_free);
+    // ft_printf("\nSMALL\n");
+    // free_print_list(g_state.small_free);
+    // ft_printf("\n-- End of show alloc mem! --\n");
 }
 
 void show_chunk_status(void *ptr) {
@@ -283,36 +283,76 @@ void print_header_sizes() {
 
 void print_chunk_in_use(page* self) {
     chunk_header* cursor = self->first_chunk;
-    while (cursor && !chunk_header_is_last_on_heap(cursor)) {
-        ft_printf("%p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
-        cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
+    while (cursor) {
+        if (chunk_header_get_allocated(cursor)){
+            ft_printf("%p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
+        }
+        else {
+            ft_printf("(free) %p - %p : %d bytes\n", cursor, (size_t)cursor + chunk_header_get_size(cursor), chunk_header_get_size(cursor));
+        }
+        if (!chunk_header_is_last_on_heap(cursor)) {
+            cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
+        }
+        else {
+            break;
+        }
     }
 }
 
-bool validate_pointer(void* ptr) {
+bool chunk_header_validate_pointer(void* ptr) {
     if (ptr == NULL) {
         ft_log_error("[malloc] ERROR: pointer is NULL\n");
         return false;
     }
     chunk_header* header = payload_to_header(ptr);
-    page* current = (page*)chunk_header_get_page(header);
-    if (current->type == TINY) {
-        if (current != g_state.tiny) {
-            ft_log_error("[malloc] ERROR: pointer is not in the TINY pool\n");
-            return false;
+    // check in LARGE pages
+    page* current = g_state.large;
+    while (current) {
+        chunk_header* cursor = current->first_chunk;
+        while (cursor) {
+            if (cursor == header) {
+                ft_log_debug("[malloc] valid pointer found in LARGE heap\n");
+                return true;
+            }
+            if (chunk_header_is_last_on_heap(cursor)) {
+                break;
+            }
+            cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
         }
+        current = current->next;
     }
-    else if (current->type == SMALL) {
-        if (current != g_state.small) {
-            ft_log_error("[malloc] ERROR: pointer is not in the SMALL pool\n");
-            return false;
+    // check in SMALL pages
+    current = g_state.small;
+    while (current) {
+        chunk_header* cursor = current->first_chunk;
+        while (cursor) {
+            if (cursor == header) {
+                ft_log_debug("[malloc] valid pointer found in SMALL heap\n");
+                return true;
+            }
+            if (chunk_header_is_last_on_heap(cursor)) {
+                break;
+            }
+            cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
         }
+        current = current->next;
     }
-    else {
-        if (current != g_state.large) {
-            ft_log_error("[malloc] ERROR: pointer is not in the LARGE pool\n");
-            return false;
+    // check in TINY pages
+    current = g_state.tiny;
+    while (current) {
+        chunk_header* cursor = current->first_chunk;
+        while (cursor) {
+            if (cursor == header) {
+                ft_log_debug("[malloc] valid pointer found in TINY heap\n");
+                return true;
+            }
+            if (chunk_header_is_last_on_heap(cursor)) {
+                break;
+            }
+            cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
         }
+        current = current->next;
     }
-    return true;
+    ft_log_error("[malloc] ERROR: pointer not found in any heap\n");
+    return false;
 }

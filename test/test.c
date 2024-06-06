@@ -46,6 +46,20 @@ void test_coalescence() {
 	show_alloc_mem();
 }
 
+
+void test_invalid_pointer() {
+	ft_printf("Testing invalid pointer\n");
+	void* ptr = malloc(100 * sizeof(char));
+	free(ptr + 5);
+	void* ptr2 = realloc(ptr + 5, 10);
+	ft_printf("ptr2: %p\n", ptr2);
+
+	free(ptr2);
+	free(ptr);
+	show_alloc_mem();
+}
+
+
 int main(void)
 {
 	print_header_sizes();
@@ -163,12 +177,12 @@ int main(void)
 	}
 	r_ptr1[49] = '\0';
 	ft_printf("r_ptr1: %s\n", r_ptr1);
-	// show_alloc_mem();
+	show_alloc_mem();
 	ft_printf("shrinking chunk to 10 bytes\n");
 	r_ptr1 = realloc(r_ptr1, 10 * sizeof(char));
 	r_ptr1[9] = '\0';
 	ft_printf("r_ptr1: %s\n", r_ptr1);
-	// show_alloc_mem();
+	show_alloc_mem();
 	free(r_ptr1);
 	// show_alloc_mem();
 	
@@ -213,5 +227,7 @@ int main(void)
 	show_alloc_mem();
 
 	test_coalescence();
+
+	test_invalid_pointer();
 	return 0;
 }

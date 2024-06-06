@@ -148,6 +148,7 @@ void*           chunk_header_get_free_small(size_t chunk_size);
 void            chunk_header_divide(chunk_header* chunk, size_t new_size);
 bool            chunk_header_free_update_free_pages(chunk_header *self);
 bool            chunk_header_alloc_update_free_pages(chunk_header *self);
+bool            chunk_header_validate_pointer(void* ptr);
 void                    free_chunk_insert(free_chunk_header* chunk);
 void                    free_chunk_remove(free_chunk_header* target);
 free_chunk_header*      free_find_size(free_chunk_header* self, size_t size, allocation_type type);

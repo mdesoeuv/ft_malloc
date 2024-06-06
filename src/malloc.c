@@ -107,11 +107,15 @@ void *malloc(size_t size) {
     }
 
 
-    // TODO: ensure that allocation is enough for linked list of freed chunks
 
     // Compute page size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
     ft_log_debug("[malloc] computed chunk size: %d\n", chunk_size);
+
+    // Ensure that allocation is enough for linked list of freed chunks
+    if (chunk_size < sizeof(free_chunk_header)) {
+        chunk_size = sizeof(free_chunk_header);
+    }
 
     allocation_type type = chunk_get_allocation_type(chunk_size);
     

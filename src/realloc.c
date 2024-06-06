@@ -20,6 +20,12 @@ void *realloc(void *ptr, size_t size) {
         return (NULL);
     }
 
+    bool res = chunk_header_validate_pointer(ptr);
+    if (!res) {
+        ft_log_error("[realloc] invalid pointer: %p\n", ptr);
+        return NULL;
+    }
+
 
     // Retrieve the chunk metadata
     chunk_header* header = payload_to_header(ptr);
