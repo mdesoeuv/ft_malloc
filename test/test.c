@@ -28,6 +28,24 @@ void ft_memcpy(void* dst, void* src, size_t size) {
 	}
 }
 
+void test_coalescence() {
+	ft_printf("Testing coalescence\n");
+	void* ptr = malloc(1000 * sizeof(char));
+	void* ptr2 = malloc(1000 * sizeof(char));
+	ft_printf("Freeing ptr2\n");
+	free(ptr2);
+	ft_printf("Freeing ptr\n");
+	free(ptr);
+	show_alloc_mem();
+	void* ptr3 = malloc(1024 * sizeof(char));
+	void* ptr4 = malloc(1024 * sizeof(char));
+	void* ptr5 = malloc(1024 * sizeof(char));
+	free(ptr3);
+	free(ptr4);
+	free(ptr5);
+	show_alloc_mem();
+}
+
 int main(void)
 {
 	print_header_sizes();
@@ -193,5 +211,7 @@ int main(void)
 	char* realloc_zero = realloc(zero_ptr, 0);
 	ft_printf("realloc_zero: %s\n", realloc_zero);
 	show_alloc_mem();
+
+	test_coalescence();
 	return 0;
 }

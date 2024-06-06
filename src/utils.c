@@ -30,12 +30,12 @@ void chunk_header_set_size(chunk_header *self, size_t size) {
     self->word_count = size / 8;
 }
 
-bool chunk_header_get_arena(chunk_header *self) {
-    return self->arena;
+bool chunk_header_get_allocated(chunk_header *self) {
+    return self->allocated;
 }
 
-void chunk_header_set_arena(chunk_header *self, bool arena) {
-    self->arena = arena;
+void chunk_header_set_allocated(chunk_header *self, bool allocated) {
+    self->allocated = allocated;
 }
 
 bool chunk_header_get_mmapped(chunk_header *self) {
@@ -78,8 +78,8 @@ void* chunk_header_get_free_small(size_t chunk_size) {
 
 void*   chunk_header_get_page(chunk_header *self) {
     chunk_header* cursor = self;
-    while(!(cursor->prev_size == 0)) {
-        cursor = (chunk_header*)((size_t)cursor - cursor->prev_size);
+    while(!(cursor->prev == NULL)) {
+        cursor = cursor->prev;
     }
     return page_get_start(cursor);
 }
@@ -87,12 +87,15 @@ void*   chunk_header_get_page(chunk_header *self) {
 
 bool    chunk_header_free_update_free_pages(chunk_header *self) {
     page* current_page = (page*)chunk_header_get_page(self);
-    if (chunk_header_get_size(self) + sizeof(page) + sizeof(chunk_header) == current_page->size) {
+    ft_log_debug("[free] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
+
+    if (chunk_header_get_size(self) + to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count++;
         } else if (current_page->type == SMALL) {
             g_state.free_small_page_count++;
         }
+        ft_log_debug("[free] free page added: %d\n", current_page->type);
         return true;
     }
     return false;
@@ -101,7 +104,8 @@ bool    chunk_header_free_update_free_pages(chunk_header *self) {
 
 bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
     page* current_page = (page*)chunk_header_get_page(self);
-    if (chunk_header_get_size(self) + sizeof(page) + sizeof(chunk_header) == current_page->size) {
+    ft_log_debug("[malloc] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
+    if (chunk_header_get_size(self) + to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count--;
         } else if (current_page->type == SMALL) {
@@ -115,7 +119,7 @@ bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
 
 bool    page_remove_if_extra(page* self) {
 
-    if (self->type == TINY && g_state.free_tiny_page_count > 1 && ((float)g_state.free_tiny_page_count > ((float)g_state.tiny_page_count * FREE_PAGE_RATIO))) {
+    if (self->type == TINY && ((float)g_state.free_tiny_page_count > ((float)g_state.tiny_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free tiny pages (%d/%d), removing extra tiny page\n", g_state.free_tiny_page_count, g_state.tiny_page_count);
         page_remove(&g_state.tiny, self);
         g_state.free_tiny_page_count--;
@@ -127,7 +131,7 @@ bool    page_remove_if_extra(page* self) {
         return false;
     }
 
-    if (self->type == SMALL && g_state.free_small_page_count > 1 && ((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
+    if (self->type == SMALL && ((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free small pages (%d/%d), removing extra small page\n", g_state.free_small_page_count, g_state.small_page_count);
         page_remove(&g_state.small, self);
         g_state.free_small_page_count--;
@@ -147,7 +151,7 @@ void chunk_header_print_metadata(chunk_header *self) {
     ft_log_trace("--- Chunk metadata: ---\n");
     ft_log_trace("- Address: %p\n", self);
     ft_log_trace("- Size: %d\n", chunk_header_get_size(self));
-    ft_log_trace("- Arena: %d\n", chunk_header_get_arena(self));
+    ft_log_trace("- Arena: %d\n", chunk_header_get_allocated(self));
     ft_log_trace("- MMapped: %d\n", chunk_header_get_mmapped(self));
     ft_log_trace("- Prev In Use: %d\n", chunk_header_get_prev_inuse(self));
     ft_log_trace("--- End of chunk metadata ---\n");
@@ -247,7 +251,7 @@ void show_chunk_status(void *ptr) {
     ft_log_debug("Memory block status: \n");
     chunk_header* header = payload_to_header(ptr);
     ft_log_debug("Size: %d\n", chunk_header_get_size(header));
-    ft_log_debug("Allocated: %d\n", chunk_header_get_arena(header));
+    ft_log_debug("Allocated: %d\n", chunk_header_get_allocated(header));
     ft_log_debug("Header address: %p\n", header);
     ft_log_debug("Payload address: %p\n", ptr);
     ft_log_debug("Next block header: %p\n", (size_t)header + chunk_header_get_size(header));

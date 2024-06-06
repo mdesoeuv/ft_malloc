@@ -39,23 +39,26 @@ void *realloc(void *ptr, size_t size) {
 
     // Check if next chunk is free and large enough for the extra size
     size_t extra_size = chunk_size - old_size;
-    chunk_header* next = chunk_header_get_next(header);
-    if (chunk_header_get_size(next) != 0) {
-        chunk_header* next_next = chunk_header_get_next(next);
-        size_t next_size = chunk_header_get_size(next);
-        if (!chunk_header_get_prev_inuse(next_next) && next_size >= extra_size) {
-            ft_log_debug("[realloc] next chunk is free and large enough to accomodate the extra size (%d)\n", next_size);
-            free_chunk_remove((free_chunk_header*)next);
-            next_next->prev_inuse = true;
-            next_next->prev_size = old_size + next_size;
-            chunk_header_set_size(header, old_size + next_size);
-            return ptr;
+    ft_log_debug("[realloc] extra size needed: %d\n", extra_size);
+    if (!chunk_header_is_last_on_heap(header)) {
+        chunk_header* next = chunk_header_get_next(header);
+        if (!chunk_header_get_allocated(next)) {
+            size_t next_size = chunk_header_get_size(next);
+            if (next_size >= extra_size) {
+                if (!chunk_header_is_last_on_heap(next)) {
+                    chunk_header* next_next = chunk_header_get_next(next);
+                    next_next->prev = (chunk_header*)header;
+                }
+                ft_log_debug("[realloc] next chunk is free and large enough to accomodate the extra size (%d)\n", next_size);
+                free_chunk_remove((free_chunk_header*)next);
+                chunk_header_set_size(header, old_size + next_size);
+                return ptr;
+            }
         }
     }
 
     ft_log_debug("[realloc] chunk cannot be extended: allocating new chunk\n");
     chunk_header* chunk = payload_to_header(malloc(size));
-
 
     // Copy the data from the old block to the new block
     size_t min_size = old_size < chunk_size ? old_size : chunk_size;

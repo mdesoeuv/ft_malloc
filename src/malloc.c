@@ -16,25 +16,25 @@ int ft_strcmp(const char *s1, const char *s2) {
 void initialize_log_level() __attribute__((constructor));
 
 void initialize_log_level() {
-    // char* log = getenv("M_LOGLEVEL");
-    // if (!log) {
-    //     return ;
-    // }
+    char* log = getenv("M_LOGLEVEL");
+    if (!log) {
+        return ;
+    }
 
-    // if (ft_strcmp(log, "TRACE") == 0) {
-    //     LOG_LEVEL = TRACE;
-    //     return ;
-    // }
+    if (ft_strcmp(log, "TRACE") == 0) {
+        LOG_LEVEL = TRACE;
+        return ;
+    }
 
-    // if (ft_strcmp(log, "DEBUG") == 0) {
-    //     LOG_LEVEL = DEBUG;
-    //     return ;
-    // }
+    if (ft_strcmp(log, "DEBUG") == 0) {
+        LOG_LEVEL = DEBUG;
+        return ;
+    }
 
-    // if (ft_strcmp(log, "INFO") == 0) {
-    //     LOG_LEVEL = INFO;
-    //     return ;
-    // }
+    if (ft_strcmp(log, "INFO") == 0) {
+        LOG_LEVEL = INFO;
+        return ;
+    }
 }
 
 page* page_get_new(size_t page_size, allocation_type type) {
@@ -64,18 +64,16 @@ page* page_get_new(size_t page_size, allocation_type type) {
     new_page->type = type;
 
     // TODO: Check if substraction of last chunk_header size does not compromise alignment
-    size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) - sizeof(chunk_header);
+    size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT);
     chunk_header* first = new_page->first_chunk;
 
+    ft_log_debug("[malloc] first chunk size on new page: %d\n", remaining_size);
     // Write chunk metadata
     chunk_header_set_size(first, remaining_size);
     chunk_header_set_mmapped(first, false);
     chunk_header_set_prev_inuse(first, true);
-    first->prev_size = 0;
-
-    chunk_header* last = chunk_header_get_next(first);
-    chunk_header_set_size(last, 0);
-    last->prev_size = remaining_size;
+    chunk_header_set_allocated(first, false);
+    first->prev = NULL;
 
     page_print_metadata(new_page);
 
@@ -131,6 +129,7 @@ void *malloc(size_t size) {
             chunk = large_alloc(chunk_size);
             break;
     }
+    chunk_header_set_allocated(chunk, true);
     chunk_header_print_metadata(chunk);
     ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), size);
     ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
@@ -176,7 +175,6 @@ chunk_header* large_alloc(size_t chunk_size) {
     chunk_header* chunk = new_page->first_chunk;
     chunk_header_set_mmapped(chunk, true);
     // chunk_header_print_metadata(chunk);
-    new_page->first_chunk = chunk_header_get_next(chunk);
 
     return chunk;
 }
@@ -216,26 +214,17 @@ void chunk_header_divide(chunk_header* chunk, size_t new_size) {
     size_t diff = old_size - new_size;
 
     // TODO: ensure that new chunk is big enough for metadata
-    if (diff < CHUNK_MIN_SIZE) {
-        ft_log_debug("[malloc] remaining chunk size is too small: chunk can't be divided\n");
-        chunk_header_set_prev_inuse(chunk_header_get_next(chunk), true);
-        return;
-    }
 
     // Write new chunk metadata
     chunk_header* new_chunk = (chunk_header *)((size_t)chunk + new_size);
     chunk_header_set_size(new_chunk, diff);
     chunk_header_set_mmapped(new_chunk, false);
     chunk_header_set_prev_inuse(new_chunk, true);
-    new_chunk->prev_size = new_size;
+    chunk_header_set_allocated(new_chunk, false);
+    new_chunk->prev = chunk;
 
     // Update the size of the current chunk
     chunk_header_set_size(chunk, new_size);
-
-    // Update prev_size of the next chunk
-    chunk_header* next = chunk_header_get_next(new_chunk);
-    next->prev_size = diff;
-    chunk_header_set_prev_inuse(next, false);
     
     // Insert the new chunk in the free list
     free_chunk_insert((free_chunk_header *)new_chunk);
