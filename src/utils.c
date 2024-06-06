@@ -81,15 +81,15 @@ void*   chunk_header_get_page(chunk_header *self) {
     while(!(cursor->prev == NULL)) {
         cursor = cursor->prev;
     }
-    return page_get_start(cursor);
+    return heap_get_start(cursor);
 }
 
 
 bool    chunk_header_free_update_free_pages(chunk_header *self) {
-    page* current_page = (page*)chunk_header_get_page(self);
+    heap* current_page = (heap*)chunk_header_get_page(self);
     ft_log_trace("[free] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
 
-    if (chunk_header_get_size(self) + to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) == current_page->size) {
+    if (chunk_header_get_size(self) + to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count++;
         } else if (current_page->type == SMALL) {
@@ -103,9 +103,9 @@ bool    chunk_header_free_update_free_pages(chunk_header *self) {
 
 
 bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
-    page* current_page = (page*)chunk_header_get_page(self);
+    heap* current_page = (heap*)chunk_header_get_page(self);
     ft_log_trace("[malloc] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
-    if (chunk_header_get_size(self) + to_next_multiple(sizeof(page), CHUNK_ALIGNMENT) == current_page->size) {
+    if (chunk_header_get_size(self) + to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count--;
         } else if (current_page->type == SMALL) {
@@ -118,11 +118,11 @@ bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
 }
 
 
-bool    page_remove_if_extra(page* self) {
+bool    heap_remove_if_extra(heap* self) {
 
     if (self->type == TINY && ((float)g_state.free_tiny_page_count > ((float)g_state.tiny_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free tiny pages (%d/%d), removing extra tiny page\n", g_state.free_tiny_page_count, g_state.tiny_page_count);
-        page_remove(&g_state.tiny, self);
+        heap_remove(&g_state.tiny, self);
         g_state.free_tiny_page_count--;
         g_state.tiny_page_count--;
         return true;
@@ -134,7 +134,7 @@ bool    page_remove_if_extra(page* self) {
 
     if (self->type == SMALL && ((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free small pages (%d/%d), removing extra small page\n", g_state.free_small_page_count, g_state.small_page_count);
-        page_remove(&g_state.small, self);
+        heap_remove(&g_state.small, self);
         g_state.free_small_page_count--;
         g_state.small_page_count--;
         return true;
@@ -173,20 +173,20 @@ void* payload_to_header(void* payload) {
     return (chunk_header*)payload - 1;
 }
 
-void* page_get_first_chunk(page *self) {
+void* heap_get_first_chunk(heap *self) {
     void* header_end = (void*)(self + 1);
     return align(header_end, CHUNK_ALIGNMENT);
 }
 
-void* page_get_end(page *self) {
+void* heap_get_end(heap *self) {
     return (void*)((size_t)self + self->size);
 }
 
-page* page_get_start(chunk_header* first_chunk) {
-    return (page*)((size_t)(first_chunk) - (size_t)first_chunk % PAGE_SIZE);
+heap* heap_get_start(chunk_header* first_chunk) {
+    return (heap*)((size_t)(first_chunk) - (size_t)first_chunk % PAGE_SIZE);
 }
 
-size_t page_get_rounded_size(size_t size) {
+size_t heap_get_rounded_size(size_t size) {
     
     size_t page_size = PAGE_SIZE;
     size_t page_count = size / page_size;
@@ -196,7 +196,7 @@ size_t page_get_rounded_size(size_t size) {
     return page_count * page_size;
 }
 
-void page_print_metadata(page *self) {
+void heap_print_metadata(heap *self) {
     char** types = (char*[]){"TINY", "SMALL", "LARGE"};
     ft_log_trace("-- Page metadata: --\n");
     ft_log_trace("Type: %s\n", types[self->type]);
@@ -209,7 +209,7 @@ void page_print_metadata(page *self) {
 
 void show_alloc_mem() {
 
-    page* current = g_state.tiny;
+    heap* current = g_state.tiny;
     size_t total_size = 0;
     while (current) {
         ft_printf("TINY : %p - %p : %d bytes\n", current, (char*)current + current->size, current->size);
@@ -264,13 +264,13 @@ void show_state_status() {
 }
 
 void print_header_sizes() {
-    ft_log_debug("Page Header size: %d\n", sizeof(page));
+    ft_log_debug("Page Header size: %d\n", sizeof(heap));
     ft_log_debug("Chunk Header size: %d\n", sizeof(chunk_header));
     ft_log_debug("Free Chunk Header size: %d\n", sizeof(free_chunk_header));
 }
 
 
-void print_chunk_in_use(page* self) {
+void print_chunk_in_use(heap* self) {
     chunk_header* cursor = self->first_chunk;
     while (cursor) {
         if (chunk_header_get_allocated(cursor)){
@@ -294,7 +294,7 @@ bool chunk_header_validate_pointer(void* ptr) {
     }
     chunk_header* header = payload_to_header(ptr);
     // check in LARGE pages
-    page* current = g_state.large;
+    heap* current = g_state.large;
     while (current) {
         chunk_header* cursor = current->first_chunk;
         while (cursor) {

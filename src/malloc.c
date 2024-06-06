@@ -37,7 +37,7 @@ void initialize_log_level() {
     }
 }
 
-page* page_get_new(size_t page_size, allocation_type type) {
+heap* heap_get_new(size_t page_size, allocation_type type) {
 
     ft_log_trace("[malloc] requesting new page of size: %d to kernel\n", page_size);
     // Request page from kernel
@@ -57,14 +57,14 @@ page* page_get_new(size_t page_size, allocation_type type) {
 
 
     // Write page metadata
-    page* new_page = (page *)ptr;
+    heap* new_page = (heap *)ptr;
     new_page->size = page_size;
-    new_page->first_chunk = page_get_first_chunk(new_page);
+    new_page->first_chunk = heap_get_first_chunk(new_page);
     new_page->next = NULL;
     new_page->type = type;
 
     // TODO: Check if substraction of last chunk_header size does not compromise alignment
-    size_t remaining_size = page_size - to_next_multiple(sizeof(page), CHUNK_ALIGNMENT);
+    size_t remaining_size = page_size - to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT);
     chunk_header* first = new_page->first_chunk;
 
     ft_log_trace("[malloc] first chunk size on new page: %d\n", remaining_size);
@@ -78,15 +78,15 @@ page* page_get_new(size_t page_size, allocation_type type) {
     // Insert page in the appropriate list
     switch(type) {
         case TINY:
-            page_insert(&g_state.tiny, new_page);
+            heap_insert(&g_state.tiny, new_page);
             g_state.tiny_page_count++;
             break;
         case SMALL:
-            page_insert(&g_state.small, new_page);
+            heap_insert(&g_state.small, new_page);
             g_state.small_page_count++;
             break;
         case LARGE:
-            page_insert(&g_state.large, new_page);
+            heap_insert(&g_state.large, new_page);
             g_state.large_page_count++;
             break;
     }
@@ -137,14 +137,14 @@ void *malloc(size_t size) {
     return chunk_header_get_payload(chunk);
 }
 
-void page_insert(page** self, page* new) {
+void heap_insert(heap** self, heap* new) {
     new->next = *self;
     *self = new;
 }
 
 /* Target must be in the list otherwise undefined behavior */
-void page_remove(page** self, page* target) {
-    page** cursor = self;
+void heap_remove(heap** self, heap* target) {
+    heap** cursor = self;
     while (*cursor != target) {
         cursor = &(*cursor)->next;
     }
@@ -155,7 +155,7 @@ void page_remove(page** self, page* target) {
     }
 }
 
-int page_count(page* self) {
+int heap_count(heap* self) {
     int count = 0;
     while (self != NULL) {
         count++;
@@ -167,10 +167,10 @@ int page_count(page* self) {
 
 chunk_header* large_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] large allocation\n");
-    size_t page_size = page_get_rounded_size(chunk_size);
+    size_t page_size = heap_get_rounded_size(chunk_size);
 
     // Request page from kernel
-    page* new_page = page_get_new(page_size, LARGE);
+    heap* new_page = heap_get_new(page_size, LARGE);
 
     chunk_header* chunk = new_page->first_chunk;
     chunk_header_set_mmapped(chunk, true);
@@ -183,7 +183,7 @@ chunk_header* small_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] small allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size, SMALL);
     if (free_chunk == NULL) {
-        page* new_page = page_get_new(SMALL_PAGE_REQUEST, SMALL);
+        heap* new_page = heap_get_new(SMALL_PAGE_REQUEST, SMALL);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size);
     }
@@ -194,8 +194,8 @@ chunk_header* tiny_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] tiny allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.tiny_free, chunk_size, TINY);
     if (free_chunk == NULL) {
-        size_t page_size = page_get_rounded_size(chunk_size);
-        page* new_page = page_get_new(page_size, TINY);
+        size_t page_size = heap_get_rounded_size(chunk_size);
+        heap* new_page = heap_get_new(page_size, TINY);
         free_chunk = new_page->first_chunk;
         chunk_header_divide((chunk_header*)free_chunk, chunk_size);
 

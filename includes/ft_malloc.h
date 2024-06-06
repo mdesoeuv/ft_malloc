@@ -186,19 +186,19 @@ void                    free_print_list(free_chunk_header* self);
 
 */
 
-typedef struct s_page {
-    struct s_page*  next;
+typedef struct s_heap {
+    struct s_heap*  next;
     chunk_header*   first_chunk;
     size_t          size;
     allocation_type type;
-} page;
+} heap;
 
 
-void*   page_get_first_chunk(page *self);
-void*   page_get_end(page *self);
-page*   page_get_new(size_t page_size, allocation_type type);
-page*   page_get_start(chunk_header* first_chunk);
-void    page_print_metadata(page *self);
+void*   heap_get_first_chunk(heap *self);
+void*   heap_get_end(heap *self);
+heap*   heap_get_new(size_t page_size, allocation_type type);
+heap*   heap_get_start(chunk_header* first_chunk);
+void    heap_print_metadata(heap *self);
 
 
 /*
@@ -213,9 +213,9 @@ void    page_print_metadata(page *self);
     the page headers 
 */
 typedef struct s_mstate {
-    page*  tiny;
-    page*  small;
-    page*  large;
+    heap*  tiny;
+    heap*  small;
+    heap*  large;
     free_chunk_header* tiny_free;
     free_chunk_header* small_free;
     size_t free_tiny_page_count;
@@ -225,11 +225,11 @@ typedef struct s_mstate {
     size_t large_page_count;
 } mstate;
 
-void        page_insert(page** self, page* new);
-void        page_remove(page** self, page* target);
-bool        page_remove_if_extra(page* self);
-size_t      page_get_rounded_size(size_t size);
-int         page_count(page* self);
+void        heap_insert(heap** self, heap* new);
+void        heap_remove(heap** self, heap* target);
+bool        heap_remove_if_extra(heap* self);
+size_t      heap_get_rounded_size(size_t size);
+int         heap_count(heap* self);
 
 chunk_header* large_alloc(size_t chunk_size);
 chunk_header* small_alloc(size_t chunk_size);
@@ -240,6 +240,6 @@ chunk_header* tiny_alloc(size_t chunk_size);
 void    show_alloc_mem();
 void    show_state_status();
 void    print_header_sizes();
-void    print_chunk_in_use(page* self);
+void    print_chunk_in_use(heap* self);
 
 #endif
