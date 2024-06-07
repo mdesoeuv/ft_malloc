@@ -90,7 +90,9 @@ heap* heap_get_new(size_t heap_size, allocation_type type) {
     chunk_header_set_allocated(first, false);
     first->prev = NULL;
 
-    free_chunk_insert((free_chunk_header*)first);
+    if (type != LARGE) {
+        free_chunk_insert((free_chunk_header*)first);
+    }
 
     // Insert page in the appropriate list
     switch(type) {
@@ -188,6 +190,8 @@ int heap_count(heap* self) {
 
 chunk_header* large_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] large allocation\n");
+    // Add size of heap header
+    chunk_size += sizeof(heap);
     size_t heap_size = heap_get_rounded_size(chunk_size);
 
     // Request page from kernel
