@@ -36,7 +36,7 @@ void    free_large(chunk_header* header) {
 
 void    free_chunk_insert(free_chunk_header* chunk) {
     free_chunk_header** list;
-    heap* pool = (heap *)chunk_header_get_page((chunk_header*)chunk);
+    heap* pool = (heap *)chunk_header_get_heap((chunk_header*)chunk);
     if (pool->type == TINY) {
         list = &g_state.tiny_free;        
     }
@@ -56,7 +56,7 @@ void    free_chunk_remove(free_chunk_header* target) {
     
     free_chunk_header** cursor;
 
-    heap* current_page = (heap *)chunk_header_get_page((chunk_header*)target);
+    heap* current_page = (heap *)chunk_header_get_heap((chunk_header*)target);
     
 
     if (current_page->type == TINY) {
@@ -82,10 +82,13 @@ void    free_print_list(free_chunk_header* self) {
 
 free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, allocation_type type) {
     free_chunk_header* cursor = self;
+    // show_alloc_mem();
+    // free_print_list(g_state.tiny_free);
     ft_log_trace("[malloc] searching for free chunk of size %d in list %d\n", size, type);
     while (cursor != NULL) {
-        if (chunk_header_get_size((chunk_header*)cursor) >= size + sizeof(size_t)) {
-            ft_log_debug("[malloc] found chunk of size %d at address: %p\n", size, cursor);
+        ft_log_trace("[malloc] testing chunk at address: %p\n", cursor);
+        if (chunk_header_get_size((chunk_header*)cursor) >= size) {
+            ft_log_debug("[malloc] found chunk of size %d at address: %p\n", chunk_header_get_size((chunk_header*)cursor), cursor);
             chunk_header_alloc_update_free_pages((chunk_header*)cursor);
             chunk_header_set_allocated((chunk_header*)cursor, true);
             chunk_header_split((chunk_header*)cursor, size);
@@ -104,7 +107,7 @@ void    free_coalesce_chunk(chunk_header* chunk) {
     chunk_header* new = free_coalesce_prev_chunk(chunk);
     free_coalesce_next_chunk(new);
     if (chunk_header_free_update_free_pages(new)) {
-        heap* current_page = (heap*)chunk_header_get_page(new);
+        heap* current_page = (heap*)chunk_header_get_heap(new);
         ft_log_trace("[free] page is free in list %d\n", current_page->type);
         if (heap_remove_if_extra(current_page)) {
             ft_log_debug("[free] page removed\n");
@@ -167,13 +170,13 @@ chunk_header*     free_coalesce_next_chunk(chunk_header* chunk) {
 
 
 bool    chunk_header_is_last_on_heap(chunk_header* chunk) {
-    heap* current_page = (heap*)chunk_header_get_page(chunk);
+    heap* current_page = (heap*)chunk_header_get_heap(chunk);
     size_t page_end_addr = (size_t)current_page + current_page->size;
     size_t chunk_end_addr = (size_t)chunk + chunk_header_get_size(chunk);
     return page_end_addr == chunk_end_addr;
 }
 
 bool    chunk_header_is_first_on_heap(chunk_header* chunk) {
-    heap* current_page = (heap*)chunk_header_get_page(chunk);
+    heap* current_page = (heap*)chunk_header_get_heap(chunk);
     return current_page->first_chunk == chunk;
 }

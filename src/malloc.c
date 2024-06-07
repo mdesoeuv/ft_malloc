@@ -188,10 +188,10 @@ int heap_count(heap* self) {
 
 chunk_header* large_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] large allocation\n");
-    size_t page_size = heap_get_rounded_size(chunk_size);
+    size_t heap_size = heap_get_rounded_size(chunk_size);
 
     // Request page from kernel
-    heap* new_heap = heap_get_new(page_size, LARGE);
+    heap* new_heap = heap_get_new(heap_size, LARGE);
     if (new_heap == NULL) {
         ft_log_error("[malloc] ERROR: could not allocate large heap\n");
         return NULL;
@@ -214,8 +214,8 @@ chunk_header* small_alloc(size_t chunk_size) {
             return NULL;
         }
         free_chunk = new_heap->first_chunk;
-        free_chunk_remove((free_chunk_header*)free_chunk);
         chunk_header_split((chunk_header*)free_chunk, chunk_size);
+        free_chunk_remove((free_chunk_header*)free_chunk);
     }
     return free_chunk;
 }
@@ -231,6 +231,7 @@ chunk_header* tiny_alloc(size_t chunk_size) {
         }
         free_chunk = new_heap->first_chunk;
         chunk_header_split((chunk_header*)free_chunk, chunk_size);
+        free_chunk_remove((free_chunk_header*)free_chunk);
 
     }
     return free_chunk;
@@ -245,7 +246,7 @@ void chunk_header_split(chunk_header* chunk, size_t new_size) {
         ft_log_error("[malloc] new size is equal or greater than old size\n");
         return;
     }
-    if (diff < sizeof(free_chunk_header)) {
+    if (diff <= sizeof(free_chunk_header)) {
         ft_log_trace("[malloc] new size is too small to split chunk\n");
         return;
     }

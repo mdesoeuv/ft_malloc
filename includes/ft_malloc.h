@@ -53,8 +53,8 @@ typedef enum e_log_level {
 
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
-#define SMALL_THRESHOLD      128 + 16
-#define LARGE_THRESHOLD      1024 + 16
+#define SMALL_THRESHOLD      128 + sizeof(chunk_header)
+#define LARGE_THRESHOLD      1024 + sizeof(chunk_header)
 #define TINY_PAGE_REQUEST    4 * PAGE_SIZE
 #define SMALL_PAGE_REQUEST   27 * PAGE_SIZE
 #define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
@@ -138,7 +138,7 @@ bool            chunk_header_get_prev_inuse(chunk_header *self);
 void            chunk_header_set_prev_inuse(chunk_header *self, bool prev_inuse);
 void*           chunk_header_get_payload(chunk_header *self);
 void*           chunk_header_get_next(chunk_header *self);
-void*           chunk_header_get_page(chunk_header *self);
+void*           chunk_header_get_heap(chunk_header *self);
 bool            chunk_header_is_last_on_heap(chunk_header* chunk);
 bool            chunk_header_is_first_on_heap(chunk_header* chunk);
 void            chunk_header_print_metadata(chunk_header *self);
@@ -196,7 +196,7 @@ typedef struct s_heap {
 
 void*   heap_get_first_chunk(heap *self);
 void*   heap_get_end(heap *self);
-heap*   heap_get_new(size_t page_size, allocation_type type);
+heap*   heap_get_new(size_t heap_size, allocation_type type);
 heap*   heap_get_start(chunk_header* first_chunk);
 void    heap_print_metadata(heap *self);
 

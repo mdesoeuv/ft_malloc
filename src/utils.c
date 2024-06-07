@@ -76,7 +76,7 @@ void* chunk_header_get_free_small(size_t chunk_size) {
 }
 
 
-void*   chunk_header_get_page(chunk_header *self) {
+void*   chunk_header_get_heap(chunk_header *self) {
     chunk_header* cursor = self;
     while(!(cursor->prev == NULL)) {
         cursor = cursor->prev;
@@ -86,7 +86,7 @@ void*   chunk_header_get_page(chunk_header *self) {
 
 
 bool    chunk_header_free_update_free_pages(chunk_header *self) {
-    heap* current_page = (heap*)chunk_header_get_page(self);
+    heap* current_page = (heap*)chunk_header_get_heap(self);
     ft_log_trace("[free] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
 
     if (chunk_header_get_size(self) + to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT) == current_page->size) {
@@ -103,7 +103,7 @@ bool    chunk_header_free_update_free_pages(chunk_header *self) {
 
 
 bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
-    heap* current_page = (heap*)chunk_header_get_page(self);
+    heap* current_page = (heap*)chunk_header_get_heap(self);
     ft_log_trace("[malloc] updating free pages: page size %d, chunk size %d\n", current_page->size, chunk_header_get_size(self));
     if (chunk_header_get_size(self) + to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
