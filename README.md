@@ -58,14 +58,10 @@ The goal is to understand how memory allocation works at a lower level and to be
 
 ## Algorithms
 
-- For large (>= 512 bytes) requests, it is a pure best-fit allocator,
-    with ties normally decided via FIFO (i.e. least recently used).
-- For small (<= 64 bytes by default) requests, it is a caching
-    allocator, that maintains pools of quickly recycled chunks.
-- In between, and for combinations of large and small requests, it does
-    the best it can trying to meet both goals at once.
-- For very large requests (>= 128KB by default), it relies on system
-    memory mapping facilities, if supported.
+- `LARGE` allocations are handled by `mmap` and `munmap`
+- `TINY` and `SMALL` allocations are handled by 
+    - first searching for a free chunk in the corresponding heap, then by allocating a new chunk if no free chunk is found
+    - if the heap is full, a new heap is created
 
 
 ### Chunk Allocation Strategy
@@ -79,37 +75,28 @@ The simplified chunk-allocation strategy for small chunks is this:
 
 ### Free Strategy
 
-1) If the chunk has the M bit set in the metadata, the allocation was allocated off-heap and should be munmaped.
+1) If the chunk has the M bit set in the metadata, the allocation is `LARGE` and should be munmaped.
 2) Otherwise, if the chunk before this one is free, the chunk is merged backwards to create a bigger free chunk.
 3) Similarly, if the chunk after this one is free, the chunk is merged forwards to create a bigger free chunk.
-4) If this potentially-larger chunk borders the “top” of the heap, the whole chunk is absorbed into the end of the heap, rather than stored in a “bin”.
-5) Otherwise, the chunk is marked as free and placed in an appropriate bin.
+4) Otherwise, the chunk is marked as free and placed in an appropriate bin.
 
 
-## Bins
+## Heaps
 
-
-// TODO: Rework this part
 
 ### Types
 
-- `TINY` : 16 - 512 bytes
-- `SMALL` : 512 -  bytes
-- `LARGE` :   bytes
+- `TINY` : 0 - 128 + 16 bytes
+- `SMALL` : 129 + 16 - 1024 + 16 bytes
+- `LARGE` : > 1024 + 16  bytes
 
-### Fast Bins
 
-``` Bins for sizes < 512 bytes contain chunks of all the same size, spaced
-8 bytes apart. Larger bins are approximately logarithmically spaced:
+### Heap Sizes
 
-64 bins of size       8
-32 bins of size      64
-16 bins of size     512
-8  bins of size    4096
-4  bins of size   32768
-2  bins of size  262144
-1  bin  of size what's left
-```
+Each heap must contain at least 100 allocations  
+
+- `TINY` : 4 * 4096 bytes
+- `SMALL` : 27 * 4096 bytes
 
 
 ## Usage
