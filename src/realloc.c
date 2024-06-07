@@ -23,6 +23,7 @@ void *realloc(void *ptr, size_t size) {
     bool res = chunk_header_validate_pointer(ptr);
     if (!res) {
         ft_log_error("[realloc] invalid pointer: %p\n", ptr);
+        ft_printf("realloc(): invalid pointer\n");
         return NULL;
     }
 

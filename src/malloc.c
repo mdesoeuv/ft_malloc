@@ -42,6 +42,10 @@ void initialize_log_level() {
 void initialize_heaps() {
     heap* tiny = heap_get_new(TINY_PAGE_REQUEST, TINY);
     heap* small = heap_get_new(SMALL_PAGE_REQUEST, SMALL);
+    if (!tiny || !small) {
+        ft_log_error("[malloc] ERROR: could not initialize tiny and small heaps\n");
+        return ;
+    }
     ft_log_debug("[malloc] initialized tiny and small heaps\n");
 }
 
@@ -144,6 +148,10 @@ void *malloc(size_t size) {
             chunk = large_alloc(chunk_size);
             break;
     }
+    if (!chunk) {
+        ft_log_error("[malloc] ERROR: could not allocate chunk\n");
+        return (NULL);
+    }
     chunk_header_set_allocated(chunk, true);
     ft_log_info("[ %p ] <- malloc(%d)\n", chunk_header_get_payload(chunk), size);
     ft_log_debug("[ %p ] <- chunk(%d)\n", chunk, chunk_size);
@@ -183,10 +191,13 @@ chunk_header* large_alloc(size_t chunk_size) {
     size_t page_size = heap_get_rounded_size(chunk_size);
 
     // Request page from kernel
-    heap* new_page = heap_get_new(page_size, LARGE);
-    // TODO check return value
+    heap* new_heap = heap_get_new(page_size, LARGE);
+    if (new_heap == NULL) {
+        ft_log_error("[malloc] ERROR: could not allocate large heap\n");
+        return NULL;
+    }
 
-    chunk_header* chunk = new_page->first_chunk;
+    chunk_header* chunk = new_heap->first_chunk;
     chunk_header_set_mmapped(chunk, true);
     // chunk_header_print_metadata(chunk);
 
@@ -197,9 +208,12 @@ chunk_header* small_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] small allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size, SMALL);
     if (free_chunk == NULL) {
-        heap* new_page = heap_get_new(SMALL_PAGE_REQUEST, SMALL);
-        // TODO check return value
-        free_chunk = new_page->first_chunk;
+        heap* new_heap = heap_get_new(SMALL_PAGE_REQUEST, SMALL);
+        if (new_heap == NULL) {
+            ft_log_error("[malloc] ERROR: could not allocate small heap\n");
+            return NULL;
+        }
+        free_chunk = new_heap->first_chunk;
         free_chunk_remove((free_chunk_header*)free_chunk);
         chunk_header_split((chunk_header*)free_chunk, chunk_size);
     }
@@ -210,10 +224,12 @@ chunk_header* tiny_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] tiny allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.tiny_free, chunk_size, TINY);
     if (free_chunk == NULL) {
-        // size_t page_size = heap_get_rounded_size(TINY_PAGE_REQUEST);
-        heap* new_page = heap_get_new(TINY_PAGE_REQUEST, TINY);
-        // TODO check return value
-        free_chunk = new_page->first_chunk;
+        heap* new_heap = heap_get_new(TINY_PAGE_REQUEST, TINY);
+        if (new_heap == NULL) {
+            ft_log_error("[malloc] ERROR: could not allocate tiny heap\n");
+            return NULL;
+        }
+        free_chunk = new_heap->first_chunk;
         chunk_header_split((chunk_header*)free_chunk, chunk_size);
 
     }
@@ -225,9 +241,12 @@ void chunk_header_split(chunk_header* chunk, size_t new_size) {
     ft_log_trace("[malloc] dividing chunk at address: %p\n", chunk);
     size_t old_size = chunk_header_get_size(chunk);
     size_t diff = old_size - new_size;
-    // TODO: log diff in a different way
-    if (new_size >= old_size || diff < sizeof(free_chunk_header)) {
+    if (new_size >= old_size) {
         ft_log_error("[malloc] new size is equal or greater than old size\n");
+        return;
+    }
+    if (diff < sizeof(free_chunk_header)) {
+        ft_log_trace("[malloc] new size is too small to split chunk\n");
         return;
     }
 

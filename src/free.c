@@ -11,6 +11,7 @@ void free(void *ptr) {
     bool res = chunk_header_validate_pointer(ptr);
     if (!res) {
         ft_log_error("[free] invalid pointer: %p\n", ptr);
+        ft_printf("free(): invalid pointer\n");
         return;
     }
 
