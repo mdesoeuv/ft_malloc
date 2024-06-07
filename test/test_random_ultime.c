@@ -16,7 +16,6 @@ int     main(void)
     srand(0);
     for (int i = 0; i < 1024; ++i)
     {
-        show_alloc_mem();
         int category = rand() % 3;
         size_t size;
         if (category == 0)
@@ -56,5 +55,10 @@ int     main(void)
         }
     }
     print("OK\n");
+    for (int i = 0; i < 1024; ++i) {
+        free(ptrs[i]); 
+    }
+    show_alloc_mem();
+    print("MasterClass\n");
     return (0);
 }
