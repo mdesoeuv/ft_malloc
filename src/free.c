@@ -87,7 +87,7 @@ free_chunk_header*    free_find_size(free_chunk_header* self, size_t size, alloc
             ft_log_debug("[malloc] found chunk of size %d at address: %p\n", size, cursor);
             chunk_header_alloc_update_free_pages((chunk_header*)cursor);
             chunk_header_set_allocated((chunk_header*)cursor, true);
-            chunk_header_divide((chunk_header*)cursor, size);
+            chunk_header_split((chunk_header*)cursor, size);
             free_chunk_remove(cursor);
             return cursor;
         }

@@ -145,7 +145,7 @@ void            chunk_header_print_metadata(chunk_header *self);
 allocation_type chunk_get_allocation_type(size_t size);
 void*           payload_to_header(void* payload);
 void*           chunk_header_get_free_small(size_t chunk_size);
-void            chunk_header_divide(chunk_header* chunk, size_t new_size);
+void            chunk_header_split(chunk_header* chunk, size_t new_size);
 bool            chunk_header_free_update_free_pages(chunk_header *self);
 bool            chunk_header_alloc_update_free_pages(chunk_header *self);
 bool            chunk_header_validate_pointer(void* ptr);

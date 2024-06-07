@@ -39,7 +39,7 @@ void *realloc(void *ptr, size_t size) {
 
     if (old_size >= chunk_size) {
         ft_log_debug("[realloc] old size is equal or larger than the new size: resizing chunk and returning the same pointer\n");
-        chunk_header_divide(header, chunk_size);
+        chunk_header_split(header, chunk_size);
         return ptr;
     }
 

@@ -15,6 +15,8 @@ int ft_strcmp(const char *s1, const char *s2) {
 
 void initialize_log_level() __attribute__((constructor));
 
+void initialize_heaps() __attribute__((constructor));
+
 void initialize_log_level() {
     char* log = getenv("M_LOGLEVEL");
     if (!log) {
@@ -37,18 +39,27 @@ void initialize_log_level() {
     }
 }
 
-heap* heap_get_new(size_t page_size, allocation_type type) {
+void initialize_heaps() {
+    heap* tiny = heap_get_new(TINY_PAGE_REQUEST, TINY);
+    heap* small = heap_get_new(SMALL_PAGE_REQUEST, SMALL);
+    ft_log_debug("[malloc] initialized tiny and small heaps\n");
+}
 
-    ft_log_trace("[malloc] requesting new page of size: %d to kernel\n", page_size);
+heap* heap_get_new(size_t heap_size, allocation_type type) {
+
+    ft_log_trace("[malloc] requesting new page of size: %d to kernel\n", heap_size);
     // Request page from kernel
     void* ptr = mmap(
         NULL,
-        page_size,
+        heap_size,
         PROT_READ | PROT_WRITE,
         MAP_PRIVATE | MAP_ANONYMOUS,
         -1,
         0
     );
+    for (size_t i = 0; i < heap_size; i++) {
+        ((char*)ptr)[i] = 0;
+    }
 
     if (ptr == MAP_FAILED) {
         ft_log_error("[malloc] ERROR: memory allocation with mmap failed\n");
@@ -57,15 +68,15 @@ heap* heap_get_new(size_t page_size, allocation_type type) {
 
 
     // Write page metadata
-    heap* new_page = (heap *)ptr;
-    new_page->size = page_size;
-    new_page->first_chunk = heap_get_first_chunk(new_page);
-    new_page->next = NULL;
-    new_page->type = type;
+    heap* new_heap = (heap *)ptr;
+    new_heap->size = heap_size;
+    new_heap->first_chunk = heap_get_first_chunk(new_heap);
+    new_heap->next = NULL;
+    new_heap->type = type;
 
     // TODO: Check if substraction of last chunk_header size does not compromise alignment
-    size_t remaining_size = page_size - to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT);
-    chunk_header* first = new_page->first_chunk;
+    size_t remaining_size = heap_size - to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT);
+    chunk_header* first = new_heap->first_chunk;
 
     ft_log_trace("[malloc] first chunk size on new page: %d\n", remaining_size);
     // Write chunk metadata
@@ -75,24 +86,26 @@ heap* heap_get_new(size_t page_size, allocation_type type) {
     chunk_header_set_allocated(first, false);
     first->prev = NULL;
 
+    free_chunk_insert((free_chunk_header*)first);
+
     // Insert page in the appropriate list
     switch(type) {
         case TINY:
-            heap_insert(&g_state.tiny, new_page);
+            heap_insert(&g_state.tiny, new_heap);
             g_state.tiny_page_count++;
             break;
         case SMALL:
-            heap_insert(&g_state.small, new_page);
+            heap_insert(&g_state.small, new_heap);
             g_state.small_page_count++;
             break;
         case LARGE:
-            heap_insert(&g_state.large, new_page);
+            heap_insert(&g_state.large, new_heap);
             g_state.large_page_count++;
             break;
     }
 
     
-    return new_page;
+    return new_heap;
 }
 
 void *malloc(size_t size) {
@@ -171,6 +184,7 @@ chunk_header* large_alloc(size_t chunk_size) {
 
     // Request page from kernel
     heap* new_page = heap_get_new(page_size, LARGE);
+    // TODO check return value
 
     chunk_header* chunk = new_page->first_chunk;
     chunk_header_set_mmapped(chunk, true);
@@ -184,8 +198,10 @@ chunk_header* small_alloc(size_t chunk_size) {
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.small_free, chunk_size, SMALL);
     if (free_chunk == NULL) {
         heap* new_page = heap_get_new(SMALL_PAGE_REQUEST, SMALL);
+        // TODO check return value
         free_chunk = new_page->first_chunk;
-        chunk_header_divide((chunk_header*)free_chunk, chunk_size);
+        free_chunk_remove((free_chunk_header*)free_chunk);
+        chunk_header_split((chunk_header*)free_chunk, chunk_size);
     }
     return free_chunk;
 }
@@ -194,26 +210,26 @@ chunk_header* tiny_alloc(size_t chunk_size) {
     ft_log_trace("[malloc] tiny allocation\n");
     chunk_header* free_chunk = (chunk_header*)free_find_size(g_state.tiny_free, chunk_size, TINY);
     if (free_chunk == NULL) {
-        size_t page_size = heap_get_rounded_size(chunk_size);
-        heap* new_page = heap_get_new(page_size, TINY);
+        // size_t page_size = heap_get_rounded_size(TINY_PAGE_REQUEST);
+        heap* new_page = heap_get_new(TINY_PAGE_REQUEST, TINY);
+        // TODO check return value
         free_chunk = new_page->first_chunk;
-        chunk_header_divide((chunk_header*)free_chunk, chunk_size);
+        chunk_header_split((chunk_header*)free_chunk, chunk_size);
 
     }
     return free_chunk;
 }
 
 
-void chunk_header_divide(chunk_header* chunk, size_t new_size) {
+void chunk_header_split(chunk_header* chunk, size_t new_size) {
     ft_log_trace("[malloc] dividing chunk at address: %p\n", chunk);
     size_t old_size = chunk_header_get_size(chunk);
-    if (new_size >= old_size) {
+    size_t diff = old_size - new_size;
+    // TODO: log diff in a different way
+    if (new_size >= old_size || diff < sizeof(free_chunk_header)) {
         ft_log_error("[malloc] new size is equal or greater than old size\n");
         return;
     }
-    size_t diff = old_size - new_size;
-
-    // TODO: ensure that new chunk is big enough for metadata
 
     // Write new chunk metadata
     chunk_header* new_chunk = (chunk_header *)((size_t)chunk + new_size);

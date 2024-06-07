@@ -120,7 +120,7 @@ bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
 
 bool    heap_remove_if_extra(heap* self) {
 
-    if (self->type == TINY && ((float)g_state.free_tiny_page_count > ((float)g_state.tiny_page_count * FREE_PAGE_RATIO))) {
+    if (self->type == TINY && g_state.free_tiny_page_count > 1 && ((float)g_state.free_tiny_page_count > ((float)g_state.tiny_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free tiny pages (%d/%d), removing extra tiny page\n", g_state.free_tiny_page_count, g_state.tiny_page_count);
         heap_remove(&g_state.tiny, self);
         g_state.free_tiny_page_count--;
@@ -132,7 +132,7 @@ bool    heap_remove_if_extra(heap* self) {
         return false;
     }
 
-    if (self->type == SMALL && ((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
+    if (self->type == SMALL && g_state.free_small_page_count > 1 && ((float)g_state.free_small_page_count > ((float)g_state.small_page_count * FREE_PAGE_RATIO))) {
         ft_log_trace("[free] free small pages (%d/%d), removing extra small page\n", g_state.free_small_page_count, g_state.small_page_count);
         heap_remove(&g_state.small, self);
         g_state.free_small_page_count--;
