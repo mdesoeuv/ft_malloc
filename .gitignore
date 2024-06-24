@@ -63,3 +63,6 @@ test/test4
 test/test5
 test/test6
 test/test_random_ultime
+.gdbinit
+stress_test
+logs
