@@ -263,6 +263,12 @@ void chunk_header_split(chunk_header* chunk, size_t new_size) {
     chunk_header_set_allocated(new_chunk, false);
     new_chunk->prev = chunk;
 
+   // Update the next chunk's prev pointer
+    if (!chunk_header_is_last_on_heap(new_chunk)) {
+        chunk_header* next = chunk_header_get_next(new_chunk);
+        next->prev = new_chunk;
+    }
+
     // Update the size of the current chunk
     chunk_header_set_size(chunk, new_size);
     

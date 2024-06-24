@@ -120,8 +120,8 @@ void    free_coalesce_chunk(chunk_header* chunk) {
 
 chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
     chunk_header* prev_chunk = chunk->prev;
-    if (chunk_header_is_first_on_heap(chunk)) {
-        ft_log_trace("[free] first chunk in page, no previous chunk, cannot coalesce\n");
+    if (prev_chunk == NULL) {
+        ft_log_trace("[free] no previous chunk, cannot coalesce\n");
         return chunk;
     }
     if (chunk_header_get_allocated(prev_chunk)) {
@@ -131,13 +131,13 @@ chunk_header*    free_coalesce_prev_chunk(chunk_header* chunk) {
     size_t size = chunk_header_get_size(chunk);
     size_t prev_size = chunk_header_get_size(prev_chunk);
     size_t new_size = size + prev_size;
-    free_chunk_remove((free_chunk_header*)prev_chunk);
     chunk_header_set_size(prev_chunk, new_size);
     chunk_header_set_allocated(prev_chunk, false);
     if (!chunk_header_is_last_on_heap(chunk)) {
         chunk_header* next = chunk_header_get_next(chunk);
         next->prev = prev_chunk;
     }
+    free_chunk_remove((free_chunk_header*)prev_chunk);
     ft_log_debug("[free] coalesced with previous chunk of size %d at address %p, new chunk size: %d\n", prev_size, prev_chunk, new_size);
     return prev_chunk;
 }

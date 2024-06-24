@@ -32,36 +32,47 @@ void *realloc(void *ptr, size_t size) {
     chunk_header* header = payload_to_header(ptr);
     size_t old_size = chunk_header_get_size(header);
 
+    heap* current = chunk_header_get_heap(header);
+    allocation_type type = current->type;
+
     // Compute the new size
     size_t chunk_size = to_next_multiple(size + sizeof(chunk_header), ALLOCATION_ALIGNMENT);
 
     ft_log_debug("[realloc] old size: %d, new requested size: %d, computed chunk size: %d\n", old_size, size, chunk_size);
 
-
-    if (old_size >= chunk_size) {
-        ft_log_debug("[realloc] old size is equal or larger than the new size: resizing chunk and returning the same pointer\n");
-        chunk_header_split(header, chunk_size);
-        return ptr;
+    if (type == LARGE) {
+        if (chunk_size <= old_size) {
+            ft_log_debug("[realloc] large chunk: new size is inferior or equal to current size: returning the same pointer\n");
+            return ptr;
+        }
     }
+    else {
+        if (old_size >= chunk_size) {
+            ft_log_debug("[realloc] old size is equal or larger than the new size: resizing chunk and returning the same pointer\n");
+            chunk_header_split(header, chunk_size);
+            return ptr;
+        }
 
-    // Check if next chunk is free and large enough for the extra size
-    size_t extra_size = chunk_size - old_size;
-    ft_log_trace("[realloc] extra size needed: %d\n", extra_size);
-    if (!chunk_header_is_last_on_heap(header)) {
-        chunk_header* next = chunk_header_get_next(header);
-        if (!chunk_header_get_allocated(next)) {
-            size_t next_size = chunk_header_get_size(next);
-            if (next_size >= extra_size) {
-                if (!chunk_header_is_last_on_heap(next)) {
-                    chunk_header* next_next = chunk_header_get_next(next);
-                    next_next->prev = (chunk_header*)header;
+        // Check if next chunk is free and large enough for the extra size
+        size_t extra_size = chunk_size - old_size;
+        ft_log_trace("[realloc] extra size needed: %d\n", extra_size);
+        if (!chunk_header_is_last_on_heap(header)) {
+            chunk_header* next = chunk_header_get_next(header);
+            if (!chunk_header_get_allocated(next)) {
+                size_t next_size = chunk_header_get_size(next);
+                if (next_size >= extra_size) {
+                    if (!chunk_header_is_last_on_heap(next)) {
+                        chunk_header* next_next = chunk_header_get_next(next);
+                        next_next->prev = header;
+                    }
+                    ft_log_debug("[realloc] next chunk is free and large enough to accomodate the extra size (%d)\n", next_size);
+                    free_chunk_remove((free_chunk_header*)next);
+                    chunk_header_set_size(header, old_size + next_size);
+                    return ptr;
                 }
-                ft_log_debug("[realloc] next chunk is free and large enough to accomodate the extra size (%d)\n", next_size);
-                free_chunk_remove((free_chunk_header*)next);
-                chunk_header_set_size(header, old_size + next_size);
-                return ptr;
             }
         }
+
     }
 
     ft_log_trace("[realloc] chunk cannot be extended: allocating new chunk\n");

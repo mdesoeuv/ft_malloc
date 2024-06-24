@@ -92,10 +92,11 @@ bool    chunk_header_free_update_free_pages(chunk_header *self) {
     if (chunk_header_get_size(self) + to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count++;
+            ft_log_trace("[free] tiny page is now free\n");
         } else if (current_page->type == SMALL) {
             g_state.free_small_page_count++;
+            ft_log_trace("[free] small page is now free\n");
         }
-        ft_log_trace("[free] free page added: %d\n", current_page->type);
         return true;
     }
     return false;
@@ -108,10 +109,11 @@ bool    chunk_header_alloc_update_free_pages(chunk_header *self) {
     if (chunk_header_get_size(self) + to_next_multiple(sizeof(heap), CHUNK_ALIGNMENT) == current_page->size) {
         if (current_page->type == TINY) {
             g_state.free_tiny_page_count--;
+            ft_log_trace("[malloc] free tiny page is now used\n");
         } else if (current_page->type == SMALL) {
             g_state.free_small_page_count--;
+            ft_log_trace("[malloc] free small page is now used\n");
         }
-        ft_log_trace("[malloc] free page removed: %d\n", current_page->type);
         return true;
     }
     return false;
@@ -169,6 +171,7 @@ allocation_type chunk_get_allocation_type(size_t size) {
     return LARGE;
 }
 
+//TODO: return chunk_header
 void* payload_to_header(void* payload) {
     return (chunk_header*)payload - 1;
 }
@@ -292,8 +295,12 @@ bool chunk_header_validate_pointer(void* ptr) {
         ft_log_error("[malloc] ERROR: pointer is NULL\n");
         return false;
     }
+    ft_log_trace("[malloc/realloc/free] validating pointer: %p\n", ptr);
     chunk_header* header = payload_to_header(ptr);
+    // ft_log_trace("[malloc/realloc/free] chunk size: %d\n", chunk_header_get_size(header));
+
     // check in LARGE pages
+    ft_log_trace("[malloc/realloc/free] checking in LARGE pages\n");
     heap* current = g_state.large;
     while (current) {
         chunk_header* cursor = current->first_chunk;
@@ -310,15 +317,19 @@ bool chunk_header_validate_pointer(void* ptr) {
         current = current->next;
     }
     // check in SMALL pages
+    ft_log_trace("[malloc/realloc/free] checking in SMALL pages\n");
     current = g_state.small;
     while (current) {
+        ft_log_trace("[malloc/realloc/free] checking page %p\n", current);
         chunk_header* cursor = current->first_chunk;
         while (cursor) {
+            // ft_log_trace("[malloc/realloc/free] checking chunk %p\n", cursor);
             if (cursor == header) {
-                ft_log_debug("[malloc] valid pointer found in SMALL heap\n");
+                ft_log_debug("[malloc/realloc/free] valid pointer found in SMALL heap\n");
                 return true;
             }
             if (chunk_header_is_last_on_heap(cursor)) {
+                ft_log_trace("[malloc/realloc/free] last chunk on heap, trying next heap\n");
                 break;
             }
             cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
@@ -326,6 +337,7 @@ bool chunk_header_validate_pointer(void* ptr) {
         current = current->next;
     }
     // check in TINY pages
+    ft_log_trace("[malloc/realloc/free] checking in TINY pages\n");
     current = g_state.tiny;
     while (current) {
         chunk_header* cursor = current->first_chunk;
@@ -335,6 +347,7 @@ bool chunk_header_validate_pointer(void* ptr) {
                 return true;
             }
             if (chunk_header_is_last_on_heap(cursor)) {
+                ft_log_trace("[malloc] last chunk on heap\n");
                 break;
             }
             cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));

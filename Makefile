@@ -5,7 +5,7 @@ endif
 
 # Compiler and flags
 CC := gcc
-CFLAGS := -Wall -Wextra -fPIC   -g3 # -pedantic
+CFLAGS := -Wall -Wextra -fPIC -g3 # -pedantic
 OPTIMIZATION_FLAGS := # -O0
 DEBUG_FLAGS := # -g3 # -fsanitize=address 
 
