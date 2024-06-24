@@ -53,7 +53,7 @@ TARGET := libft_malloc_$(HOSTTYPE).so
 
 .PHONY: all clean fclean re
 
-all: $(TARGET) $(TEST_DIR)/test_exec libmock.so
+all: libft_malloc.so $(TEST_DIR)/test_exec libmock.so
 
 test: $(TEST_DIR)/test_exec libmock.so
 	$(TEST_DIR)/test_exec
@@ -66,6 +66,9 @@ $(TEST_DIR)/test_exec: $(OBJS_TEST_FILES) libmock.so
 
 $(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(HEADERS)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET)
+	
+libft_malloc.so: $(TARGET)
+	ln -sf $(TARGET) libft_malloc.so
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) Makefile | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OPTIMIZATION_FLAGS) -c $< -o $@
@@ -89,7 +92,7 @@ clean:
 	rm -rf $(OBJ_DIR) $(TEST_OBJ_DIR) $(MOCK_OBJ_DIR)
 
 fclean: clean
-	rm -f $(TARGET) $(TEST_DIR)/test_exec libmock.so
+	rm -f $(TARGET) $(TEST_DIR)/test_exec libmock.so libft_malloc.so
 
 re: fclean all
 
