@@ -53,16 +53,11 @@ TARGET := libft_malloc_$(HOSTTYPE).so
 
 .PHONY: all clean fclean re
 
-all: libft_malloc.so $(TEST_DIR)/test_exec libmock.so
-
-test: $(TEST_DIR)/test_exec libmock.so
-	$(TEST_DIR)/test_exec
+all: libft_malloc.so libmock.so
 
 libmock.so: $(MOCK_OBJS_FILES) $(MOCK_HEADERS)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(MOCK_OBJS_FILES) -o libmock.so
 
-$(TEST_DIR)/test_exec: $(OBJS_TEST_FILES) libmock.so
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(OBJS_TEST_FILES) -o $@  -L . -l mock
 
 $(TARGET): $(OBJ_DIR) $(OBJS_FILES) $(HEADERS)
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -shared $(OBJS_FILES) -o $(TARGET)
