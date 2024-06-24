@@ -51,14 +51,15 @@ typedef enum e_log_level {
         } \
     } while(0)
 
+
 #define ALLOCATION_ALIGNMENT 16 // must be a power of 2
 #define CHUNK_ALIGNMENT      16 // must be a power of 2
 #define SMALL_THRESHOLD      128 + sizeof(chunk_header)
 #define LARGE_THRESHOLD      1024 + sizeof(chunk_header)
-#define TINY_PAGE_REQUEST    4 * PAGE_SIZE
-#define SMALL_PAGE_REQUEST   27 * PAGE_SIZE
+#define TINY_PAGE_REQUEST    heap_get_rounded_size(100 * SMALL_THRESHOLD + sizeof(heap))
+#define SMALL_PAGE_REQUEST   heap_get_rounded_size(100 * LARGE_THRESHOLD + sizeof(heap))
 #define CHUNK_MIN_SIZE       sizeof(free_chunk_header)
-#define PAGE_SIZE            getpagesize()
+#define PAGE_SIZE            getpagesize() 
 #define FREE_PAGE_RATIO      0 // must be positive
 
 typedef enum e_allocation_type {
