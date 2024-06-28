@@ -297,7 +297,6 @@ bool chunk_header_validate_pointer(void* ptr) {
     }
     ft_log_trace("[malloc/realloc/free] validating pointer: %p\n", ptr);
     chunk_header* header = payload_to_header(ptr);
-    // ft_log_trace("[malloc/realloc/free] chunk size: %d\n", chunk_header_get_size(header));
 
     // check in LARGE pages
     ft_log_trace("[malloc/realloc/free] checking in LARGE pages\n");
@@ -310,6 +309,7 @@ bool chunk_header_validate_pointer(void* ptr) {
                 return true;
             }
             if (chunk_header_is_last_on_heap(cursor)) {
+                ft_log_trace("[malloc] last chunk on heap, trying next heap\n");
                 break;
             }
             cursor = (chunk_header*)((size_t)cursor + chunk_header_get_size(cursor));
@@ -317,10 +317,8 @@ bool chunk_header_validate_pointer(void* ptr) {
         current = current->next;
     }
     // check in SMALL pages
-    ft_log_trace("[malloc/realloc/free] checking in SMALL pages\n");
     current = g_state.small;
     while (current) {
-        ft_log_trace("[malloc/realloc/free] checking page %p\n", current);
         chunk_header* cursor = current->first_chunk;
         while (cursor) {
             // ft_log_trace("[malloc/realloc/free] checking chunk %p\n", cursor);

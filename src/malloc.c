@@ -61,15 +61,14 @@ heap* heap_get_new(size_t heap_size, allocation_type type) {
         -1,
         0
     );
-    for (size_t i = 0; i < heap_size; i++) {
-        ((char*)ptr)[i] = 0;
-    }
-
     if (ptr == MAP_FAILED) {
         ft_log_error("[malloc] ERROR: memory allocation with mmap failed\n");
         return (NULL);
     }
 
+    for (size_t i = 0; i < heap_size; i++) {
+        ((char*)ptr)[i] = 0;
+    }
 
     // Write page metadata
     heap* new_heap = (heap *)ptr;

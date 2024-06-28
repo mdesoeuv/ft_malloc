@@ -105,8 +105,6 @@ typedef struct s_chunk_header {
     ------------------------------
     |        next ptr            |
     ------------------------------
-    |        prev ptr            |
-    ------------------------------
     |        payload             |
     ------------------------------
 
@@ -118,15 +116,12 @@ typedef struct s_chunk_header {
 typedef struct s_free_chunk_header {
     chunk_header            header;
     struct s_free_chunk_header* next;
-    struct s_free_chunk_header* prev;
 } free_chunk_header;
 
 
 void*   align(void* ptr, size_t alignment);
-
-size_t  to_next_multiple(size_t value, size_t alignment);
-
 void    is_aligned(void* ptr);
+size_t  to_next_multiple(size_t value, size_t alignment);
 
 
 size_t          chunk_header_get_size(chunk_header *self);
